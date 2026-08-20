@@ -10,15 +10,15 @@
 <style>
 :root{
   /* Core four */
-  --near-black:#111318;
+  --ink:#111318;
   --blue:#2864FF;
-  --cool-white:#F7F8FA;
+  --white:#F7F8FA;
   --slate:#667085;
   /* Working tokens */
-  --surface:#16191F;
+  --surface-dark:#16191F;
   --raised:#1B1F27;
   --border-dark:#262B34;
-  --border-strong:#333A45;
+  --border-strong-dark:#333A45;
   --slate-light:#98A2B3;
   --blue-hover:#3D74FF;
   --blue-press:#1E52D6;
@@ -26,20 +26,19 @@
   --line-light:#E4E7EC;
   --warning:#F5A524;
   --error:#F04438;
-  --ink:#111318;
   /* Type */
-  --f-black:'Archivo Black','Archivo',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
-  --f-display:'Archivo','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
-  --f-ui:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --font-lockup:'Archivo Black','Archivo',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --font-display:'Archivo','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --font-body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
   /* Shape */
   --r-card:14px;
   --r-input:9px;
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--near-black)}
+html,body{background:var(--ink)}
 body{
-  font-family:var(--f-ui);
+  font-family:var(--font-body);
   color:var(--ink);
   line-height:1.5;
   -webkit-font-smoothing:antialiased;
@@ -49,20 +48,20 @@ button{font-family:inherit;cursor:pointer}
 input,select,textarea{font-family:inherit}
 
 /* ---------- App frame ---------- */
-.app{max-width:820px;margin:0 auto;min-height:100vh;background:var(--near-black);display:flex;flex-direction:column}
+.app{max-width:820px;margin:0 auto;min-height:100vh;background:var(--ink);display:flex;flex-direction:column}
 
 .topbar{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
-  padding:14px 16px;background:var(--near-black);border-bottom:1px solid var(--border-dark);
+  padding:14px 16px;background:var(--ink);border-bottom:1px solid var(--border-dark);
   position:sticky;top:0;z-index:20;
 }
 .lockup{display:flex;align-items:center;gap:9px}
 .lockup__mark{width:34px;height:23px;flex:none}
-.lockup__name{font-family:var(--f-black);font-size:.95rem;letter-spacing:-.035em;color:var(--cool-white);white-space:nowrap}
+.lockup__name{font-family:var(--font-lockup);font-size:.95rem;letter-spacing:-.035em;color:var(--white);white-space:nowrap}
 .lockup__name .the{color:var(--slate)}
 .lockup__name .cost{color:var(--blue)}
 
-.viewtoggle{display:flex;background:var(--surface);border:1px solid var(--border-dark);border-radius:var(--r-input);padding:3px;gap:2px}
+.viewtoggle{display:flex;background:var(--surface-dark);border:1px solid var(--border-dark);border-radius:var(--r-input);padding:3px;gap:2px}
 .viewtoggle button{
   border:none;background:transparent;color:var(--slate-light);
   font-size:.8rem;font-weight:600;padding:7px 12px;border-radius:6px;min-height:36px;letter-spacing:.01em;
@@ -70,7 +69,7 @@ input,select,textarea{font-family:inherit}
 .viewtoggle button.is-active{background:var(--blue);color:#fff}
 
 /* ---------- Work surface ---------- */
-.surface{background:var(--cool-white);flex:1;padding:16px;border-radius:0}
+.surface{background:var(--white);flex:1;padding:16px;border-radius:0}
 @media(min-width:720px){.surface{padding:24px}}
 
 .banner{
@@ -84,7 +83,7 @@ input,select,textarea{font-family:inherit}
 /* Cards */
 .card{background:#fff;border:1px solid var(--line-light);border-radius:var(--r-card);margin-bottom:16px}
 .card__head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:16px}
-.card__head h2{font-family:var(--f-display);font-weight:700;font-size:1.05rem;letter-spacing:-.01em;color:var(--ink)}
+.card__head h2{font-family:var(--font-display);font-weight:700;font-size:1.05rem;letter-spacing:-.01em;color:var(--ink)}
 .card__head .sub{font-size:.8rem;color:var(--slate);font-weight:500;margin-top:2px}
 .card__body{padding:0 16px 16px}
 .card--collapsed .card__body{display:none}
@@ -119,9 +118,9 @@ input[type=number]{-moz-appearance:textfield}
 input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 
 /* Segmented toggle */
-.seg{display:inline-flex;background:var(--cool-white);border:1px solid var(--line-light);border-radius:var(--r-input);padding:3px;gap:2px;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--white);border:1px solid var(--line-light);border-radius:var(--r-input);padding:3px;gap:2px;flex-wrap:wrap}
 .seg button{border:none;background:transparent;color:var(--slate);font-size:.82rem;font-weight:600;padding:8px 12px;border-radius:6px;min-height:40px}
-.seg button.is-active{background:var(--near-black);color:#fff}
+.seg button.is-active{background:var(--ink);color:#fff}
 
 /* Checkbox row */
 .check{display:flex;align-items:center;gap:9px;font-size:.85rem;color:var(--ink);cursor:pointer;user-select:none;min-height:40px}
@@ -130,7 +129,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 /* Line items */
 .lineitem{border:1px solid var(--line-light);border-radius:12px;padding:14px;margin-bottom:12px;background:#fff}
 .lineitem__top{display:flex;align-items:center;gap:8px;margin-bottom:12px}
-.lineitem__num{font-family:var(--f-display);font-weight:700;font-size:.85rem;color:var(--slate);flex:none}
+.lineitem__num{font-family:var(--font-display);font-weight:700;font-size:.85rem;color:var(--slate);flex:none}
 .lineitem__amt{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums;color:var(--blue);font-size:1rem;white-space:nowrap}
 .lineitem__desc{margin-bottom:12px}
 .lineitem .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -140,7 +139,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 .icon-btn:disabled{opacity:.35;cursor:not-allowed}
 .icon-btn.del:hover{border-color:var(--error);color:var(--error)}
 
-.addline{width:100%;background:transparent;border:1px dashed var(--border-strong);color:var(--ink);border-radius:var(--r-input);padding:12px;font-weight:600;font-size:.9rem;min-height:48px}
+.addline{width:100%;background:transparent;border:1px dashed var(--border-strong-dark);color:var(--ink);border-radius:var(--r-input);padding:12px;font-weight:600;font-size:.9rem;min-height:48px}
 .addline:hover{border-color:var(--blue);color:var(--blue)}
 
 /* Buttons */
@@ -155,17 +154,17 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 .btn-row .btn{flex:1;min-width:160px}
 
 /* ---------- Owner result card (near-black) ---------- */
-.result{background:var(--near-black);border-radius:var(--r-card);padding:22px;color:var(--cool-white);border:1px solid var(--border-strong)}
+.result{background:var(--ink);border-radius:var(--r-card);padding:22px;color:var(--white);border:1px solid var(--border-strong-dark)}
 .result__label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.14em;color:var(--slate-light)}
-.result__total{font-family:var(--f-ui);font-weight:700;font-variant-numeric:tabular-nums;color:var(--blue);font-size:3rem;line-height:1.05;margin:4px 0 2px;letter-spacing:-.02em;white-space:nowrap;max-width:100%;overflow:hidden}
+.result__total{font-family:var(--font-body);font-weight:700;font-variant-numeric:tabular-nums;color:var(--blue);font-size:3rem;line-height:1.05;margin:4px 0 2px;letter-spacing:-.02em;white-space:nowrap;max-width:100%;overflow:hidden}
 @media(min-width:560px){.result__total{font-size:3.4rem}}
 .result__note{font-size:.82rem;color:var(--slate-light);margin-top:6px}
-.result__note b{color:var(--cool-white);font-weight:600}
-.result__grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-strong);border:1px solid var(--border-strong);border-radius:10px;overflow:hidden;margin-top:18px}
+.result__note b{color:var(--white);font-weight:600}
+.result__grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-strong-dark);border:1px solid var(--border-strong-dark);border-radius:10px;overflow:hidden;margin-top:18px}
 @media(min-width:560px){.result__grid{grid-template-columns:repeat(4,1fr)}}
-.stat{background:var(--surface);padding:12px 14px}
+.stat{background:var(--surface-dark);padding:12px 14px}
 .stat__k{font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--slate-light)}
-.stat__v{font-weight:700;font-variant-numeric:tabular-nums;font-size:1.25rem;margin-top:3px;color:var(--cool-white)}
+.stat__v{font-weight:700;font-variant-numeric:tabular-nums;font-size:1.25rem;margin-top:3px;color:var(--white)}
 .stat__v.pos{color:var(--blue)}
 .flag{display:none;margin-top:16px;background:rgba(245,165,36,.12);border:1px solid rgba(245,165,36,.4);border-radius:10px;padding:12px 14px;font-size:.82rem;color:#F5C67A}
 .flag.show{display:block}
@@ -179,10 +178,10 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 
 .quote{background:#fff;border:1px solid var(--line-light);border-radius:var(--r-card);padding:26px;color:var(--ink)}
 .quote__head{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:16px;margin-bottom:16px}
-.quote__biz h3{font-family:var(--f-display);font-weight:800;font-size:1.3rem;letter-spacing:-.01em}
+.quote__biz h3{font-family:var(--font-display);font-weight:800;font-size:1.3rem;letter-spacing:-.01em}
 .quote__biz p{font-size:.82rem;color:var(--slate);margin-top:3px;word-break:break-word}
 .quote__meta{text-align:right;font-size:.82rem;min-width:150px}
-.quote__meta .qword{font-family:var(--f-display);font-weight:800;font-size:1.05rem;letter-spacing:.02em;color:var(--ink)}
+.quote__meta .qword{font-family:var(--font-display);font-weight:800;font-size:1.05rem;letter-spacing:.02em;color:var(--ink)}
 .quote__meta .qrow{margin-top:4px;color:var(--slate)}
 .quote__meta .qrow b{color:var(--ink);font-weight:600}
 .quote__to{margin-bottom:16px}
@@ -210,18 +209,18 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 .quote__notes p{font-size:.82rem;color:#3a4149;margin-top:6px;white-space:pre-wrap;word-break:break-word}
 .quote__stamp{display:none;align-items:center;gap:7px;margin-top:20px;padding-top:12px;border-top:1px solid var(--line-light)}
 .quote__stamp svg{width:22px;height:15px}
-.quote__stamp span{font-family:var(--f-black);font-size:.72rem;letter-spacing:-.03em;color:var(--slate)}
+.quote__stamp span{font-family:var(--font-lockup);font-size:.72rem;letter-spacing:-.03em;color:var(--slate)}
 .quote__stamp .cost{color:var(--blue)}
 
 /* Footer */
-.foot{padding:16px;text-align:center;color:var(--slate);font-size:.75rem;background:var(--near-black)}
+.foot{padding:16px;text-align:center;color:var(--slate);font-size:.75rem;background:var(--ink)}
 .foot .cost{color:var(--slate-light)}
 
 /* Modal */
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(17,19,24,.6);z-index:50;align-items:center;justify-content:center;padding:16px}
 .modal-bg.show{display:flex}
 .modal{background:#fff;border-radius:var(--r-card);padding:22px;max-width:400px;width:100%}
-.modal h3{font-family:var(--f-display);font-weight:700;font-size:1.1rem;margin-bottom:8px}
+.modal h3{font-family:var(--font-display);font-weight:700;font-size:1.1rem;margin-bottom:8px}
 .modal p{font-size:.9rem;color:var(--slate);margin-bottom:18px}
 .modal .btn-row .btn{min-width:0}
 
@@ -504,7 +503,13 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
    Single file. Offline. Graceful storage fallback.
    ============================================================ */
 
-const KEY = 'ctc_contractor_quote_v1';
+/* Storage keys follow the house convention: <tool>_data_v1 / <tool>_seen_v1.
+   The LEGACY_* keys are what v1.1 and earlier wrote. load() migrates them once
+   so an owner who already saved a setup does not come back to an empty form. */
+const KEY  = 'contractorquote_data_v1';
+const SEEN = 'contractorquote_seen_v1';
+const LEGACY_KEY  = 'ctc_contractor_quote_v1';
+const LEGACY_SEEN = 'ctc_seen';
 
 /* ---- Storage: try localStorage, fall back to memory (sandbox-safe) ---- */
 const store = (() => {
@@ -609,10 +614,17 @@ function calc(){
   else if(m > 95){ m = 95; mNote = 'capped at 95%'; }
   const withMargin = jobBase / (1 - m/100);
 
+  /* The quote's task rows carry the profit margin inside them, so a materials
+     row reads higher than matCharged. Tax has to land on the number the client
+     can add up off the page, or the tax line will not match the rate you quoted.
+     rowScale is the same factor renderQuote() uses to scale those rows. */
+  const rowScale = subtotal > 0.005 ? (withMargin - trip) / subtotal : 0;
+  const matShown = matCharged * rowScale;
+
   // Tax
   let tax = 0;
   const taxRate = num(s.tax)/100;
-  if(s.taxMode==='materials') tax = matCharged * taxRate;
+  if(s.taxMode==='materials') tax = matShown * taxRate;
   else if(s.taxMode==='everything') tax = withMargin * taxRate;
 
   const total = withMargin + tax;
@@ -624,7 +636,8 @@ function calc(){
   const marginActual = withMargin > 0 ? profit/withMargin*100 : 0;
 
   return { perLine, subtotal, trip, minFee, minApplied, jobBase, withMargin, tax, total, deposit,
-           costFloor, effHourly, profit, marginActual, totalHours, matCharged, matRaw, laborBilled, mNote, mUsed:m };
+           costFloor, effHourly, profit, marginActual, totalHours, matCharged, matShown, rowScale,
+           matRaw, laborBilled, mNote, mUsed:m };
 }
 
 function trimPct(n){ return (Math.round(n*100)/100).toString(); }
@@ -673,7 +686,7 @@ function renderQuote(r){
   const s = state;
   const flat = s.detail === 'flat';
   const folded = s.matMode === 'folded';
-  const anyMaterials = r.matCharged > 0.005;
+  const anyMaterials = r.matShown > 0.005;
 
   // Header
   let html = '';
@@ -706,48 +719,50 @@ function renderQuote(r){
   // prices, never as a hidden line. Trip stays at face value; the rows absorb the
   // rest. When the minimum fee applies, this spreads it across the tasks cleanly.
   const target = r.withMargin - r.trip;                 // what the line rows must total
-  const scale  = r.subtotal > 0.005 ? target / r.subtotal : 0;
+  const scale  = r.rowScale;                            // calc() taxes against this same factor
   const even   = s.lines.length ? target / s.lines.length : 0;
   const scLabor = pl => pl.labor * scale;
   const scMat   = pl => pl.charged * scale;
   const scLine  = pl => r.subtotal > 0.005 ? pl.lineTotal * scale : even;
 
-  // Line item table
+  /* Column layout. A Labor column only earns its place when materials sit
+     beside it and the two add up to Amount. Any other mode has nothing to
+     split out, so Labor would just reprint Amount under a second heading. */
+  const splitCols = !flat && folded && anyMaterials;   // Task | Labor | Materials | Amount
+  const matRows   = !flat && !folded && anyMaterials;  // materials get their own rows below
+
   html += '<table class="qtable"><thead><tr>';
   html += '<th>Task</th>';
-  if(!flat) html += '<th class="num">Labor</th>';
-  if(!flat && folded && anyMaterials) html += '<th class="num">Materials</th>';
+  if(splitCols) html += '<th class="num">Labor</th><th class="num">Materials</th>';
   html += '<th class="num">Amount</th>';
   html += '</tr></thead><tbody>';
 
   s.lines.forEach((li, i)=>{
     const pl = r.perLine[i];
     if(!pl) return;
-    const desc = esc(li.desc || ('Task '+(i+1)));
     html += '<tr>';
-    html += '<td class="desc">'+desc;
+    html += '<td class="desc">'+esc(li.desc || ('Task '+(i+1)));
     if(!flat){
-      const bits = [];
-      bits.push(trimPct(pl.hours)+' hr'+(pl.hours===1?'':'s'));
+      const bits = [ trimPct(pl.hours)+' hr'+(pl.hours===1?'':'s') ];
       if(s.operator==='crew' && pl.workers>1) bits.push(pl.workers+' workers');
       html += '<div class="submeta">'+bits.join(' · ')+'</div>';
     }
     html += '</td>';
-    // Detailed labor column = task price minus its materials share, so labor + materials = amount
-    if(!flat) html += '<td class="num">'+money(folded ? scLabor(pl) : scLine(pl) - scMat(pl))+'</td>';
-    if(!flat && folded && anyMaterials) html += '<td class="num">'+(pl.charged>0?money(scMat(pl)):'—')+'</td>';
-    // Amount column: folded shows full task price; separate shows labor-only here, materials below
-    html += '<td class="num">'+money(folded || flat ? scLine(pl) : (scLine(pl) - scMat(pl)))+'</td>';
+    if(splitCols){
+      html += '<td class="num">'+money(scLabor(pl))+'</td>';
+      html += '<td class="num">'+(pl.charged>0 ? money(scMat(pl)) : '—')+'</td>';
+    }
+    // Amount is the whole task, except in matRows mode where materials sit below
+    html += '<td class="num">'+money(matRows ? scLine(pl) - scMat(pl) : scLine(pl))+'</td>';
     html += '</tr>';
   });
 
-  // Materials as their own rows (separate mode, detailed)
-  if(!flat && !folded && anyMaterials){
+  if(matRows){
     s.lines.forEach((li,i)=>{
       const pl = r.perLine[i];
       if(!pl || pl.charged<=0) return;
       html += '<tr class="mat"><td class="desc">Materials — '+esc(li.desc||('Task '+(i+1)))+'</td>';
-      html += '<td class="num"></td><td class="num">'+money(scMat(pl))+'</td></tr>';
+      html += '<td class="num">'+money(scMat(pl))+'</td></tr>';
     });
   }
 
@@ -878,7 +893,11 @@ function updateSetupSummary(){
 /* ---- Persist ---- */
 function save(){ store.set(KEY, JSON.stringify(state)); }
 function load(){
-  const raw = store.get(KEY);
+  let raw = store.get(KEY);
+  if(!raw){                                   // one-time migration off the old key
+    raw = store.get(LEGACY_KEY);
+    if(raw){ store.set(KEY, raw); store.del(LEGACY_KEY); }
+  }
   if(!raw) return null;
   try { const p = JSON.parse(raw); if(p && Array.isArray(p.lines) && p.lines.length) return p; } catch(e){}
   return null;
@@ -1004,18 +1023,23 @@ function collapseSetup(collapse){
 }
 
 /* ---- Onboarding banner ---- */
-function showBanner(){ if(!store.get('ctc_seen')) document.getElementById('banner').style.display = 'flex'; }
-function dismissBanner(){ document.getElementById('banner').style.display = 'none'; store.set('ctc_seen','1'); }
+function seenBanner(){
+  if(store.get(SEEN)) return true;
+  if(store.get(LEGACY_SEEN)){ store.set(SEEN,'1'); store.del(LEGACY_SEEN); return true; }
+  return false;
+}
+function showBanner(){ if(!seenBanner()) document.getElementById('banner').style.display = 'flex'; }
+function dismissBanner(){ document.getElementById('banner').style.display = 'none'; store.set(SEEN,'1'); }
 function dismissBannerSilently(){
   const b = document.getElementById('banner');
-  if(b.style.display !== 'none'){ b.style.display = 'none'; store.set('ctc_seen','1'); }
+  if(b.style.display !== 'none'){ b.style.display = 'none'; store.set(SEEN,'1'); }
 }
 
 /* ---- Reset ---- */
 function askReset(){ document.getElementById('resetModal').classList.add('show'); }
 function closeReset(){ document.getElementById('resetModal').classList.remove('show'); }
 function doReset(){
-  store.del(KEY); store.del('ctc_seen');
+  store.del(KEY); store.del(SEEN); store.del(LEGACY_KEY); store.del(LEGACY_SEEN);
   state = sampleState();
   hydrateForm();
   renderLines(); refresh();
@@ -1058,7 +1082,7 @@ window.addEventListener('resize', ()=>{ clearTimeout(_fitTimer); _fitTimer = set
 /* ---- Init ---- */
 function init(){
   const saved = load();
-  const seen = store.get('ctc_seen');
+  const seen = seenBanner();
   if(saved){
     state = Object.assign(defaultState(), saved);
     collapseSetup(true);         // returning user: setup tucked away
