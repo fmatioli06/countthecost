@@ -109,4 +109,4 @@ Run the `build-critique-loop` skill. Then check by hand:
 | Tool | Status |
 | --- | --- |
 | Cleaning Price & Quote Calculator | Selling on Etsy |
-| Contractor Quote Calculator | In progress, not in the repo yet |
+| Contractor Quote Calculator | In progress, v1.1 |
