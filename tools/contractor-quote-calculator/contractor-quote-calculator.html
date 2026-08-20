@@ -16,7 +16,6 @@
   --slate:#667085;
   /* Working tokens */
   --surface-dark:#16191F;
-  --raised:#1B1F27;
   --border-dark:#262B34;
   --border-strong-dark:#333A45;
   --slate-light:#98A2B3;
@@ -24,7 +23,6 @@
   --blue-press:#1E52D6;
   --blue-tint:rgba(40,100,255,.12);
   --line-light:#E4E7EC;
-  --warning:#F5A524;
   --error:#F04438;
   /* Type */
   --font-lockup:'Archivo Black','Archivo',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
@@ -53,7 +51,7 @@ input,select,textarea{font-family:inherit}
 .topbar{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   padding:14px 16px;background:var(--ink);border-bottom:1px solid var(--border-dark);
-  position:sticky;top:0;z-index:20;
+  position:sticky;top:0;z-index:20;flex-wrap:wrap;
 }
 .lockup{display:flex;align-items:center;gap:9px}
 .lockup__mark{width:34px;height:23px;flex:none}
@@ -192,7 +190,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 .qtable{width:100%;border-collapse:collapse;margin-bottom:6px}
 .qtable th{font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;color:var(--slate);text-align:left;padding:8px 8px;border-bottom:1px solid var(--line-light);font-weight:600}
 .qtable th.num,.qtable td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-.qtable td{padding:11px 8px;border-bottom:1px solid var(--line-light);font-size:.9rem;vertical-align:top}
+.qtable td{padding:11px 8px;border-bottom:1px solid var(--line-light);font-size:.9rem;vertical-align:top;overflow-wrap:anywhere}
 .qtable td.desc{word-break:break-word}
 .qtable .submeta{font-size:.76rem;color:var(--slate);margin-top:3px}
 .qtable tr.mat td{color:var(--slate);font-size:.85rem}
@@ -240,7 +238,12 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
   .quote-controls{display:none!important}
   .quote{border:none;border-radius:0;padding:0}
   .quote__stamp{display:flex!important}
-  @page{margin:14mm}
+  .quote__head{padding-bottom:12px;margin-bottom:12px}
+  .qtable td{padding:7px 8px}
+  .qtable th{padding:6px 8px}
+  .qtotals .qt-row{padding:4px 8px}
+  .quote__notes{margin-top:14px;padding-top:10px}
+  @page{margin:12mm}
 }
 </style>
 </head>
@@ -628,7 +631,7 @@ function calc(){
   else if(s.taxMode==='everything') tax = withMargin * taxRate;
 
   const total = withMargin + tax;
-  const deposit = total * (num(s.deposit)/100);
+  const deposit = total * (Math.min(100, Math.max(0, num(s.deposit)))/100);
 
   const costFloor = num(s.billableHours) > 0 ? num(s.overhead)/num(s.billableHours) : 0;
   const effHourly = totalHours > 0 ? withMargin/totalHours : 0;
@@ -778,7 +781,8 @@ function renderQuote(r){
     if(r.tax>0)  html += row('Tax', money(r.tax));
   }
   html += '<div class="qt-row total"><span>Total</span><span class="amt">'+money(r.total)+'</span></div>';
-  if(num(s.deposit)>0) html += '<div class="qt-row deposit"><span>Deposit due ('+trimPct(num(s.deposit))+'%)</span><span class="amt">'+money(r.deposit)+'</span></div>';
+  const depPct = Math.min(100, Math.max(0, num(s.deposit)));   // matches the cap calc() puts on the amount
+  if(depPct>0) html += '<div class="qt-row deposit"><span>Deposit due ('+trimPct(depPct)+'%)</span><span class="amt">'+money(r.deposit)+'</span></div>';
   html += '</div>';
 
   // Notes
@@ -949,7 +953,8 @@ function bindLineDelegation(){
   wrap.addEventListener('blur', e=>{
     const el = e.target;
     if(!el.dataset.l || el.type!=='number') return;
-    if(num(el.value) < 0){ el.value = (el.dataset.l==='workers'?1:0); state.lines[+el.dataset.i][el.dataset.l]=el.value; el.classList.add('has-error'); shake(el); setTimeout(()=>el.classList.remove('has-error'),600); refresh(); }
+    const floor = el.dataset.l==='workers' ? 1 : 0;      // a task needs at least one worker
+    if(num(el.value) < floor){ el.value = floor; state.lines[+el.dataset.i][el.dataset.l]=el.value; el.classList.add('has-error'); shake(el); setTimeout(()=>el.classList.remove('has-error'),600); refresh(); }
   }, true);
 }
 
@@ -1098,7 +1103,7 @@ function init(){
   refresh();
   if(!saved && !seen) showBanner();
 }
-window.addEventListener('load', init);
+window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
