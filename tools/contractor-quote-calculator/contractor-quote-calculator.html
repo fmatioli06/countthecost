@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contractor Quote Calculator — Count the Cost</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Archivo+Black&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Core four */
+  --near-black:#111318;
+  --blue:#2864FF;
+  --cool-white:#F7F8FA;
+  --slate:#667085;
+  /* Working tokens */
+  --surface:#16191F;
+  --raised:#1B1F27;
+  --border-dark:#262B34;
+  --border-strong:#333A45;
+  --slate-light:#98A2B3;
+  --blue-hover:#3D74FF;
+  --blue-press:#1E52D6;
+  --blue-tint:rgba(40,100,255,.12);
+  --line-light:#E4E7EC;
+  --warning:#F5A524;
+  --error:#F04438;
+  --ink:#111318;
+  /* Type */
+  --f-black:'Archivo Black','Archivo',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-display:'Archivo','Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-ui:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  /* Shape */
+  --r-card:14px;
+  --r-input:9px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--near-black)}
+body{
+  font-family:var(--f-ui);
+  color:var(--ink);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+
+/* ---------- App frame ---------- */
+.app{max-width:820px;margin:0 auto;min-height:100vh;background:var(--near-black);display:flex;flex-direction:column}
+
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:14px 16px;background:var(--near-black);border-bottom:1px solid var(--border-dark);
+  position:sticky;top:0;z-index:20;
+}
+.lockup{display:flex;align-items:center;gap:9px}
+.lockup__mark{width:34px;height:23px;flex:none}
+.lockup__name{font-family:var(--f-black);font-size:.95rem;letter-spacing:-.035em;color:var(--cool-white);white-space:nowrap}
+.lockup__name .the{color:var(--slate)}
+.lockup__name .cost{color:var(--blue)}
+
+.viewtoggle{display:flex;background:var(--surface);border:1px solid var(--border-dark);border-radius:var(--r-input);padding:3px;gap:2px}
+.viewtoggle button{
+  border:none;background:transparent;color:var(--slate-light);
+  font-size:.8rem;font-weight:600;padding:7px 12px;border-radius:6px;min-height:36px;letter-spacing:.01em;
+}
+.viewtoggle button.is-active{background:var(--blue);color:#fff}
+
+/* ---------- Work surface ---------- */
+.surface{background:var(--cool-white);flex:1;padding:16px;border-radius:0}
+@media(min-width:720px){.surface{padding:24px}}
+
+.banner{
+  display:none;align-items:center;gap:12px;background:#fff;border:1px solid var(--line-light);
+  border-left:3px solid var(--blue);border-radius:10px;padding:12px 14px;margin-bottom:16px;
+  font-size:.9rem;color:var(--ink);
+}
+.banner b{font-weight:600}
+.banner__x{margin-left:auto;background:none;border:none;font-size:1.3rem;line-height:1;color:var(--slate);padding:0 4px}
+
+/* Cards */
+.card{background:#fff;border:1px solid var(--line-light);border-radius:var(--r-card);margin-bottom:16px}
+.card__head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:16px}
+.card__head h2{font-family:var(--f-display);font-weight:700;font-size:1.05rem;letter-spacing:-.01em;color:var(--ink)}
+.card__head .sub{font-size:.8rem;color:var(--slate);font-weight:500;margin-top:2px}
+.card__body{padding:0 16px 16px}
+.card--collapsed .card__body{display:none}
+
+.collapse-btn{background:transparent;border:1px solid var(--line-light);color:var(--slate);border-radius:8px;font-size:.75rem;font-weight:600;padding:6px 10px;min-height:36px;white-space:nowrap}
+.setup-summary{font-size:.8rem;color:var(--slate);font-weight:500;margin-top:2px;display:none}
+.card--collapsed .setup-summary{display:block}
+
+/* Field grid */
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:560px){.grid--2{grid-template-columns:1fr 1fr}.grid--3{grid-template-columns:1fr 1fr 1fr}}
+
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--slate)}
+.field .hint{font-size:.72rem;color:var(--slate);font-weight:400;text-transform:none;letter-spacing:0}
+.field .warn{font-size:.74rem;color:var(--error);font-weight:500;display:none}
+.field.has-warn .warn{display:block}
+
+.control{position:relative;display:flex;align-items:center}
+.control .pre{position:absolute;left:11px;color:var(--slate);font-size:.9rem;pointer-events:none}
+.control .post{position:absolute;right:11px;color:var(--slate);font-size:.9rem;pointer-events:none}
+input[type=text],input[type=number],input[type=date],textarea,select{
+  width:100%;background:#fff;border:1px solid var(--line-light);border-radius:var(--r-input);
+  padding:11px 12px;font-size:.95rem;color:var(--ink);min-height:44px;
+}
+input.pad-l{padding-left:24px}
+input.pad-r{padding-right:34px}
+input.has-error{border-color:var(--error)}
+textarea{min-height:80px;resize:vertical;line-height:1.5}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-tint)}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+/* Segmented toggle */
+.seg{display:inline-flex;background:var(--cool-white);border:1px solid var(--line-light);border-radius:var(--r-input);padding:3px;gap:2px;flex-wrap:wrap}
+.seg button{border:none;background:transparent;color:var(--slate);font-size:.82rem;font-weight:600;padding:8px 12px;border-radius:6px;min-height:40px}
+.seg button.is-active{background:var(--near-black);color:#fff}
+
+/* Checkbox row */
+.check{display:flex;align-items:center;gap:9px;font-size:.85rem;color:var(--ink);cursor:pointer;user-select:none;min-height:40px}
+.check input{width:19px;height:19px;accent-color:var(--blue);flex:none;cursor:pointer}
+
+/* Line items */
+.lineitem{border:1px solid var(--line-light);border-radius:12px;padding:14px;margin-bottom:12px;background:#fff}
+.lineitem__top{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.lineitem__num{font-family:var(--f-display);font-weight:700;font-size:.85rem;color:var(--slate);flex:none}
+.lineitem__amt{margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums;color:var(--blue);font-size:1rem;white-space:nowrap}
+.lineitem__desc{margin-bottom:12px}
+.lineitem .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lineitem.crew .row{grid-template-columns:1fr 1fr 1fr}
+.lineitem__actions{display:flex;gap:6px;flex:none}
+.icon-btn{background:transparent;border:1px solid var(--line-light);color:var(--slate);border-radius:8px;width:34px;height:34px;font-size:.95rem;display:flex;align-items:center;justify-content:center;line-height:1}
+.icon-btn:disabled{opacity:.35;cursor:not-allowed}
+.icon-btn.del:hover{border-color:var(--error);color:var(--error)}
+
+.addline{width:100%;background:transparent;border:1px dashed var(--border-strong);color:var(--ink);border-radius:var(--r-input);padding:12px;font-weight:600;font-size:.9rem;min-height:48px}
+.addline:hover{border-color:var(--blue);color:var(--blue)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:var(--r-input);font-weight:600;font-size:.95rem;min-height:48px;padding:0 20px;border:1px solid transparent}
+.btn--primary{background:var(--blue);color:#fff;border-color:var(--blue)}
+.btn--primary:hover{background:var(--blue-hover);border-color:var(--blue-hover)}
+.btn--primary:active{background:var(--blue-press)}
+.btn--ghost{background:transparent;color:var(--ink);border-color:var(--line-light)}
+.btn--ghost:hover{border-color:var(--slate)}
+.btn--block{width:100%}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap}
+.btn-row .btn{flex:1;min-width:160px}
+
+/* ---------- Owner result card (near-black) ---------- */
+.result{background:var(--near-black);border-radius:var(--r-card);padding:22px;color:var(--cool-white);border:1px solid var(--border-strong)}
+.result__label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.14em;color:var(--slate-light)}
+.result__total{font-family:var(--f-ui);font-weight:700;font-variant-numeric:tabular-nums;color:var(--blue);font-size:3rem;line-height:1.05;margin:4px 0 2px;letter-spacing:-.02em;white-space:nowrap;max-width:100%;overflow:hidden}
+@media(min-width:560px){.result__total{font-size:3.4rem}}
+.result__note{font-size:.82rem;color:var(--slate-light);margin-top:6px}
+.result__note b{color:var(--cool-white);font-weight:600}
+.result__grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border-strong);border:1px solid var(--border-strong);border-radius:10px;overflow:hidden;margin-top:18px}
+@media(min-width:560px){.result__grid{grid-template-columns:repeat(4,1fr)}}
+.stat{background:var(--surface);padding:12px 14px}
+.stat__k{font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--slate-light)}
+.stat__v{font-weight:700;font-variant-numeric:tabular-nums;font-size:1.25rem;margin-top:3px;color:var(--cool-white)}
+.stat__v.pos{color:var(--blue)}
+.flag{display:none;margin-top:16px;background:rgba(245,165,36,.12);border:1px solid rgba(245,165,36,.4);border-radius:10px;padding:12px 14px;font-size:.82rem;color:#F5C67A}
+.flag.show{display:block}
+
+/* ---------- Client quote view ---------- */
+#view-quote{display:none}
+.quote-controls{display:flex;flex-direction:column;gap:12px;margin-bottom:16px}
+.quote-controls .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.qopt{display:flex;flex-direction:column;gap:6px}
+.qopt .qlab{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--slate)}
+
+.quote{background:#fff;border:1px solid var(--line-light);border-radius:var(--r-card);padding:26px;color:var(--ink)}
+.quote__head{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:2px solid var(--ink);padding-bottom:16px;margin-bottom:16px}
+.quote__biz h3{font-family:var(--f-display);font-weight:800;font-size:1.3rem;letter-spacing:-.01em}
+.quote__biz p{font-size:.82rem;color:var(--slate);margin-top:3px;word-break:break-word}
+.quote__meta{text-align:right;font-size:.82rem;min-width:150px}
+.quote__meta .qword{font-family:var(--f-display);font-weight:800;font-size:1.05rem;letter-spacing:.02em;color:var(--ink)}
+.quote__meta .qrow{margin-top:4px;color:var(--slate)}
+.quote__meta .qrow b{color:var(--ink);font-weight:600}
+.quote__to{margin-bottom:16px}
+.quote__to .qlab{font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--slate)}
+.quote__to .qname{font-weight:600;font-size:1rem;margin-top:2px}
+.quote__to .qaddr{font-size:.85rem;color:var(--slate);word-break:break-word}
+
+.qtable{width:100%;border-collapse:collapse;margin-bottom:6px}
+.qtable th{font-size:.66rem;text-transform:uppercase;letter-spacing:.08em;color:var(--slate);text-align:left;padding:8px 8px;border-bottom:1px solid var(--line-light);font-weight:600}
+.qtable th.num,.qtable td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.qtable td{padding:11px 8px;border-bottom:1px solid var(--line-light);font-size:.9rem;vertical-align:top}
+.qtable td.desc{word-break:break-word}
+.qtable .submeta{font-size:.76rem;color:var(--slate);margin-top:3px}
+.qtable tr.mat td{color:var(--slate);font-size:.85rem}
+
+.qtotals{margin-left:auto;width:100%;max-width:320px;margin-top:12px}
+.qtotals .qt-row{display:flex;justify-content:space-between;padding:6px 8px;font-size:.9rem}
+.qtotals .qt-row.total{border-top:2px solid var(--ink);margin-top:4px;padding-top:12px;font-weight:700;font-size:1.15rem}
+.qtotals .qt-row.total .amt{color:var(--blue);font-variant-numeric:tabular-nums}
+.qtotals .qt-row.deposit{color:var(--blue);font-weight:600;background:var(--blue-tint);border-radius:8px;margin-top:6px}
+.qtotals .amt{font-variant-numeric:tabular-nums}
+
+.quote__notes{margin-top:20px;border-top:1px solid var(--line-light);padding-top:14px}
+.quote__notes .qlab{font-size:.66rem;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--slate)}
+.quote__notes p{font-size:.82rem;color:#3a4149;margin-top:6px;white-space:pre-wrap;word-break:break-word}
+.quote__stamp{display:none;align-items:center;gap:7px;margin-top:20px;padding-top:12px;border-top:1px solid var(--line-light)}
+.quote__stamp svg{width:22px;height:15px}
+.quote__stamp span{font-family:var(--f-black);font-size:.72rem;letter-spacing:-.03em;color:var(--slate)}
+.quote__stamp .cost{color:var(--blue)}
+
+/* Footer */
+.foot{padding:16px;text-align:center;color:var(--slate);font-size:.75rem;background:var(--near-black)}
+.foot .cost{color:var(--slate-light)}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(17,19,24,.6);z-index:50;align-items:center;justify-content:center;padding:16px}
+.modal-bg.show{display:flex}
+.modal{background:#fff;border-radius:var(--r-card);padding:22px;max-width:400px;width:100%}
+.modal h3{font-family:var(--f-display);font-weight:700;font-size:1.1rem;margin-bottom:8px}
+.modal p{font-size:.9rem;color:var(--slate);margin-bottom:18px}
+.modal .btn-row .btn{min-width:0}
+
+.shake{animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.fade-num{animation:fadeNum .25s ease}
+@keyframes fadeNum{from{opacity:.4}to{opacity:1}}
+
+/* ---------- Print ---------- */
+@media print{
+  html,body{background:#fff}
+  .app{max-width:none}
+  .no-print{display:none!important}
+  .surface{background:#fff;padding:0}
+  #view-builder{display:none!important}
+  #view-quote{display:block!important}
+  .quote-controls{display:none!important}
+  .quote{border:none;border-radius:0;padding:0}
+  .quote__stamp{display:flex!important}
+  @page{margin:14mm}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Top bar -->
+  <header class="topbar no-print">
+    <div class="lockup">
+      <svg class="lockup__mark" viewBox="0 0 150 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <g stroke-linecap="round" fill="none" stroke-width="11">
+          <line x1="20" y1="12" x2="20" y2="88" stroke="#F7F8FA"/>
+          <line x1="52" y1="12" x2="52" y2="88" stroke="#F7F8FA"/>
+          <line x1="84" y1="12" x2="84" y2="88" stroke="#F7F8FA"/>
+          <line x1="116" y1="12" x2="116" y2="88" stroke="#F7F8FA"/>
+          <line x1="2" y1="76" x2="134" y2="24" stroke="#2864FF"/>
+        </g>
+      </svg>
+      <span class="lockup__name">COUNT <span class="the">THE</span> <span class="cost">COST</span></span>
+    </div>
+    <div class="viewtoggle" role="tablist">
+      <button id="tab-build" class="is-active" onclick="setView('build')">Builder</button>
+      <button id="tab-quote" onclick="setView('quote')">Client quote</button>
+    </div>
+  </header>
+
+  <main class="surface">
+
+    <!-- Onboarding banner -->
+    <div class="banner no-print" id="banner">
+      <span><b>Sample quote loaded.</b> Replace the numbers with your own job.</span>
+      <button class="banner__x" onclick="dismissBanner()" aria-label="Dismiss">&times;</button>
+    </div>
+
+    <!-- ============ BUILDER VIEW ============ -->
+    <div id="view-builder">
+
+      <!-- Setup -->
+      <section class="card" id="setup-card">
+        <div class="card__head">
+          <div>
+            <h2>Your setup</h2>
+            <div class="sub">Set this once. It carries into every quote.</div>
+            <div class="setup-summary" id="setup-summary"></div>
+          </div>
+          <button class="collapse-btn" id="setup-toggle" onclick="toggleSetup()">Hide</button>
+        </div>
+        <div class="card__body">
+          <div class="grid grid--2">
+            <div class="field">
+              <label for="bizName">Business name</label>
+              <input type="text" id="bizName" data-s="bizName" placeholder="e.g. Rivera Home Services">
+            </div>
+            <div class="field">
+              <label for="bizContact">Phone or email</label>
+              <input type="text" id="bizContact" data-s="bizContact" placeholder="e.g. 512-555-0140">
+            </div>
+            <div class="field">
+              <label for="license">License number</label>
+              <input type="text" id="license" data-s="license" placeholder="optional">
+            </div>
+            <div class="field">
+              <label>Operator type</label>
+              <div class="seg" id="seg-operator">
+                <button data-op="solo" class="is-active" onclick="setOperator('solo')">Solo</button>
+                <button data-op="crew" onclick="setOperator('crew')">Crew</button>
+              </div>
+            </div>
+            <div class="field" id="rate-field">
+              <label for="rate">Billable rate (per hour)</label>
+              <div class="control">
+                <span class="pre">$</span>
+                <input type="number" id="rate" class="pad-l" data-s="rate" min="0" step="1">
+              </div>
+              <span class="warn" id="rate-warn"></span>
+            </div>
+            <div class="field">
+              <label for="markup">Materials markup</label>
+              <div class="control">
+                <input type="number" id="markup" class="pad-r" data-s="markup" min="0" step="1">
+                <span class="post">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="minFee">Minimum service fee</label>
+              <div class="control">
+                <span class="pre">$</span>
+                <input type="number" id="minFee" class="pad-l" data-s="minFee" min="0" step="1">
+              </div>
+            </div>
+            <div class="field">
+              <label for="trip">Trip charge</label>
+              <div class="control">
+                <span class="pre">$</span>
+                <input type="number" id="trip" class="pad-l" data-s="trip" min="0" step="1">
+              </div>
+            </div>
+            <div class="field">
+              <label for="margin">Profit margin target</label>
+              <div class="control">
+                <input type="number" id="margin" class="pad-r" data-s="margin" min="0" step="1">
+                <span class="post">%</span>
+              </div>
+              <span class="hint" id="margin-hint"></span>
+            </div>
+            <div class="field">
+              <label for="overhead">Monthly overhead</label>
+              <div class="control">
+                <span class="pre">$</span>
+                <input type="number" id="overhead" class="pad-l" data-s="overhead" min="0" step="1">
+              </div>
+              <span class="hint">Rent, tools, insurance, phone. Used to check your floor.</span>
+            </div>
+            <div class="field">
+              <label for="billableHours">Billable hours per month</label>
+              <input type="number" id="billableHours" data-s="billableHours" min="0" step="1">
+            </div>
+            <div class="field">
+              <label for="taxRate">Tax rate</label>
+              <div class="control">
+                <input type="number" id="taxRate" class="pad-r" data-s="tax" min="0" step="0.01">
+                <span class="post">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Tax applies to</label>
+              <div class="seg" id="seg-tax">
+                <button data-tax="materials" class="is-active" onclick="setTaxMode('materials')">Materials</button>
+                <button data-tax="everything" onclick="setTaxMode('everything')">Everything</button>
+                <button data-tax="none" onclick="setTaxMode('none')">None</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="deposit">Deposit</label>
+              <div class="control">
+                <input type="number" id="deposit" class="pad-r" data-s="deposit" min="0" step="1">
+                <span class="post">%</span>
+              </div>
+            </div>
+            <div class="field">
+              <label for="currency">Currency symbol</label>
+              <input type="text" id="currency" data-s="currency" maxlength="3" placeholder="$">
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Job details -->
+      <section class="card">
+        <div class="card__head"><div><h2>This job</h2></div></div>
+        <div class="card__body">
+          <div class="grid grid--2">
+            <div class="field">
+              <label for="clientName">Client name</label>
+              <input type="text" id="clientName" data-s="clientName" placeholder="e.g. Dana Whitfield">
+            </div>
+            <div class="field">
+              <label for="jobAddress">Job address</label>
+              <input type="text" id="jobAddress" data-s="jobAddress" placeholder="e.g. 812 Cedar Ln">
+            </div>
+            <div class="field">
+              <label for="quoteNum">Quote number</label>
+              <input type="text" id="quoteNum" data-s="quoteNum">
+            </div>
+            <div class="field">
+              <label for="quoteDate">Quote date</label>
+              <input type="date" id="quoteDate" data-s="quoteDate">
+            </div>
+            <div class="field">
+              <label for="validDays">Valid for (days)</label>
+              <input type="number" id="validDays" data-s="validDays" min="0" step="1">
+            </div>
+          </div>
+          <div class="field" style="margin-top:14px">
+            <label for="notes">Notes and terms</label>
+            <textarea id="notes" data-s="notes"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- Line items -->
+      <section class="card">
+        <div class="card__head"><div><h2>Tasks</h2><div class="sub">One line per task. Add as many as the job needs.</div></div></div>
+        <div class="card__body">
+          <div id="lines"></div>
+          <button class="addline" onclick="addLine()">+ Add a task</button>
+        </div>
+      </section>
+
+      <!-- Owner result -->
+      <section class="result" id="result" aria-live="polite">
+        <div class="result__label">Quote this job at</div>
+        <div class="result__total" id="ownerTotal">$0.00</div>
+        <div class="result__note" id="ownerNote"></div>
+        <div class="result__grid">
+          <div class="stat"><div class="stat__k">Profit</div><div class="stat__v pos" id="statProfit">$0</div></div>
+          <div class="stat"><div class="stat__k">Actual margin</div><div class="stat__v" id="statMargin">0%</div></div>
+          <div class="stat"><div class="stat__k">Effective / hr</div><div class="stat__v" id="statHourly">$0</div></div>
+          <div class="stat"><div class="stat__k">Total hours</div><div class="stat__v" id="statHours">0</div></div>
+        </div>
+        <div class="flag" id="floorFlag"></div>
+      </section>
+
+      <div class="btn-row no-print" style="margin-top:16px">
+        <button class="btn btn--primary" onclick="setView('quote')">Build the client quote</button>
+        <button class="btn btn--ghost" onclick="askReset()">Start over</button>
+      </div>
+    </div>
+
+    <!-- ============ CLIENT QUOTE VIEW ============ -->
+    <div id="view-quote">
+      <div class="quote-controls no-print">
+        <div class="row">
+          <div class="qopt">
+            <span class="qlab">Detail level</span>
+            <div class="seg" id="seg-detail">
+              <button data-detail="math" class="is-active" onclick="setDetail('math')">Show the math</button>
+              <button data-detail="flat" onclick="setDetail('flat')">Flat price</button>
+            </div>
+          </div>
+          <div class="qopt">
+            <span class="qlab">Materials</span>
+            <div class="seg" id="seg-materials">
+              <button data-mat="separate" class="is-active" onclick="setMatMode('separate')">Separate line</button>
+              <button data-mat="folded" onclick="setMatMode('folded')">Folded in</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- The printable quote -->
+      <div class="quote" id="quoteDoc"></div>
+
+      <div class="btn-row no-print" style="margin-top:16px">
+        <button class="btn btn--primary" onclick="window.print()">Print / Save PDF</button>
+        <button class="btn btn--ghost" onclick="setView('build')">Back to builder</button>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="foot no-print">Count the <span class="cost">Cost</span> · Contractor Quote Calculator · v1.1</footer>
+</div>
+
+<!-- Reset modal -->
+<div class="modal-bg" id="resetModal">
+  <div class="modal">
+    <h3>Start over</h3>
+    <p>This clears the current job and your saved setup, then loads a fresh sample. Can't be undone.</p>
+    <div class="btn-row">
+      <button class="btn btn--ghost" onclick="closeReset()">Keep my work</button>
+      <button class="btn btn--primary" onclick="doReset()">Clear it</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   Count the Cost — Contractor Quote Calculator
+   Single file. Offline. Graceful storage fallback.
+   ============================================================ */
+
+const KEY = 'ctc_contractor_quote_v1';
+
+/* ---- Storage: try localStorage, fall back to memory (sandbox-safe) ---- */
+const store = (() => {
+  let ok = false;
+  try { const t='__t'; localStorage.setItem(t,'1'); localStorage.removeItem(t); ok = true; } catch(e){ ok = false; }
+  let mem = {};
+  return {
+    get(k){ try { return ok ? localStorage.getItem(k) : (mem[k] ?? null); } catch(e){ return mem[k] ?? null; } },
+    set(k,v){ try { ok ? localStorage.setItem(k,v) : (mem[k]=v); } catch(e){ mem[k]=v; } },
+    del(k){ try { ok ? localStorage.removeItem(k) : (delete mem[k]); } catch(e){ delete mem[k]; } }
+  };
+})();
+
+/* ---- Defaults per operator type ---- */
+const OP_DEFAULTS = {
+  solo: { rate:75, markup:30 },
+  crew: { rate:95, markup:40 }
+};
+
+const PRESET_TERMS = "Quote based on the work described above. Materials and scope may change if conditions on site differ. Payment due on completion unless noted. Deposit is non-refundable once work begins.";
+
+function todayISO(){ const d=new Date(); return d.toISOString().slice(0,10); }
+
+/* ---- State ---- */
+let state = {};
+
+function defaultState(){
+  return {
+    bizName:'', bizContact:'', license:'', operator:'solo',
+    rate:75, overhead:1200, billableHours:100, markup:30,
+    minFee:150, trip:0, margin:20, tax:0, taxMode:'materials',
+    deposit:0, currency:'$',
+    clientName:'', jobAddress:'', quoteNum:new Date().getFullYear()+'-001',
+    quoteDate:todayISO(), validDays:30, notes:PRESET_TERMS,
+    lines:[ blankLine() ],
+    detail:'math', matMode:'separate'
+  };
+}
+
+function sampleState(){
+  return {
+    bizName:'Rivera Home Services', bizContact:'512-555-0140', license:'LIC #44821',
+    operator:'solo', rate:75, overhead:1200, billableHours:100, markup:30,
+    minFee:150, trip:25, margin:20, tax:8.25, taxMode:'materials', deposit:25, currency:'$',
+    clientName:'Dana Whitfield', jobAddress:'812 Cedar Ln',
+    quoteNum:new Date().getFullYear()+'-001', quoteDate:todayISO(), validDays:30,
+    notes:PRESET_TERMS,
+    lines:[
+      { desc:'Mount 65in TV, conceal cables', hours:2,   workers:1, material:35, clientSupplies:false },
+      { desc:'Replace 3 interior door handles', hours:1.5, workers:1, material:60, clientSupplies:false },
+      { desc:'Repair drywall patch, bedroom', hours:2,    workers:1, material:20, clientSupplies:false },
+      { desc:'Install ceiling fan, master',   hours:2.5,  workers:1, material:90, clientSupplies:false }
+    ],
+    detail:'math', matMode:'separate'
+  };
+}
+
+function blankLine(){ return { desc:'', hours:1, workers:1, material:0, clientSupplies:false }; }
+
+/* ---- Formatting ---- */
+function money(n){
+  if(!isFinite(n)) n = 0;
+  const sym = state.currency || '$';
+  return sym + Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function money0(n){
+  if(!isFinite(n)) n = 0;
+  const sym = state.currency || '$';
+  return sym + Math.round(n).toLocaleString();
+}
+function num(v){ const x = parseFloat(v); return isFinite(x) ? x : 0; }
+
+/* ---- Core calculation (verified separately) ---- */
+function calc(){
+  const s = state;
+  let subtotal=0, laborBilled=0, matRaw=0, matCharged=0, totalHours=0;
+  const perLine = [];
+
+  s.lines.forEach(li=>{
+    const workers = s.operator==='crew' ? Math.max(1, num(li.workers)||1) : 1;
+    const hours   = Math.max(0, num(li.hours));
+    const labor   = hours * workers * num(s.rate);
+    const rawMat  = li.clientSupplies ? 0 : Math.max(0, num(li.material));
+    const charged = rawMat * (1 + num(s.markup)/100);
+    const lineTotal = labor + charged;
+    perLine.push({ labor, charged, rawMat, lineTotal, hours, workers });
+    subtotal += lineTotal; laborBilled += labor; matRaw += rawMat; matCharged += charged;
+    totalHours += hours * workers;
+  });
+
+  const trip = Math.max(0, num(s.trip));
+  const minFee = Math.max(0, num(s.minFee));
+  const preMin = subtotal + trip;
+  const minApplied = preMin < minFee && minFee > 0;
+  const jobBase = Math.max(preMin, minFee);
+
+  // Margin is margin, not markup: divide.
+  let m = num(s.margin);
+  let mNote = '';
+  if(m > 0 && m < 1){ m = m * 100; mNote = 'read as ' + trimPct(m) + '%'; } // 0.25 -> 25
+  if(m >= 100){ m = 95; mNote = 'capped at 95%'; }
+  else if(m > 95){ m = 95; mNote = 'capped at 95%'; }
+  const withMargin = jobBase / (1 - m/100);
+
+  // Tax
+  let tax = 0;
+  const taxRate = num(s.tax)/100;
+  if(s.taxMode==='materials') tax = matCharged * taxRate;
+  else if(s.taxMode==='everything') tax = withMargin * taxRate;
+
+  const total = withMargin + tax;
+  const deposit = total * (num(s.deposit)/100);
+
+  const costFloor = num(s.billableHours) > 0 ? num(s.overhead)/num(s.billableHours) : 0;
+  const effHourly = totalHours > 0 ? withMargin/totalHours : 0;
+  const profit = withMargin - laborBilled - matRaw - trip;
+  const marginActual = withMargin > 0 ? profit/withMargin*100 : 0;
+
+  return { perLine, subtotal, trip, minFee, minApplied, jobBase, withMargin, tax, total, deposit,
+           costFloor, effHourly, profit, marginActual, totalHours, matCharged, matRaw, laborBilled, mNote, mUsed:m };
+}
+
+function trimPct(n){ return (Math.round(n*100)/100).toString(); }
+
+/* ---- Render owner card ---- */
+function renderOwner(r){
+  const t = document.getElementById('ownerTotal');
+  t.textContent = money(r.total);
+  fitTotal();
+  t.classList.remove('fade-num'); void t.offsetWidth; t.classList.add('fade-num');
+
+  let note = '';
+  if(r.minApplied){
+    note = 'Minimum service fee applied. The tasks came to <b>'+money(r.subtotal + r.trip)+'</b>.';
+  } else if(r.tax > 0){
+    note = 'Includes <b>'+money(r.tax)+'</b> tax. Deposit due: <b>'+money(r.deposit)+'</b>.';
+  } else if(num(state.deposit) > 0){
+    note = 'Deposit due up front: <b>'+money(r.deposit)+'</b>.';
+  } else {
+    note = 'Before tax and deposit.';
+  }
+  document.getElementById('ownerNote').innerHTML = note;
+
+  document.getElementById('statProfit').textContent = money0(r.profit);
+  document.getElementById('statMargin').textContent = trimPct(r.marginActual)+'%';
+  document.getElementById('statHourly').textContent = r.totalHours>0 ? money0(r.effHourly) : '—';
+  document.getElementById('statHours').textContent = trimPct(r.totalHours);
+
+  // Cost-floor warning on the rate field + result flag
+  const floorFlag = document.getElementById('floorFlag');
+  const rateField = document.getElementById('rate-field');
+  const rateWarn = document.getElementById('rate-warn');
+  if(r.costFloor > 0 && num(state.rate) < r.costFloor){
+    rateField.classList.add('has-warn');
+    rateWarn.textContent = 'Below your cost floor of '+money0(r.costFloor)+'/hr. You are not covering overhead.';
+    floorFlag.classList.add('show');
+    floorFlag.innerHTML = 'Your rate of '+money0(num(state.rate))+'/hr is under your '+money0(r.costFloor)+'/hr cost floor. Every hour loses money before you have paid yourself.';
+  } else {
+    rateField.classList.remove('has-warn');
+    floorFlag.classList.remove('show');
+  }
+}
+
+/* ---- Render client quote ---- */
+function renderQuote(r){
+  const s = state;
+  const flat = s.detail === 'flat';
+  const folded = s.matMode === 'folded';
+  const anyMaterials = r.matCharged > 0.005;
+
+  // Header
+  let html = '';
+  html += '<div class="quote__head">';
+  html +=   '<div class="quote__biz">';
+  html +=     '<h3>'+esc(s.bizName || 'Your Business')+'</h3>';
+  const bizMeta = [s.bizContact, s.license].filter(Boolean).map(esc).join(' · ');
+  if(bizMeta) html += '<p>'+bizMeta+'</p>';
+  html +=   '</div>';
+  html +=   '<div class="quote__meta">';
+  html +=     '<div class="qword">QUOTE</div>';
+  if(s.quoteNum)  html += '<div class="qrow">No. <b>'+esc(s.quoteNum)+'</b></div>';
+  if(s.quoteDate) html += '<div class="qrow">'+fmtDate(s.quoteDate)+'</div>';
+  const validUntil = addDays(s.quoteDate, num(s.validDays));
+  if(validUntil && num(s.validDays)>0) html += '<div class="qrow">Valid until '+validUntil+'</div>';
+  html +=   '</div>';
+  html += '</div>';
+
+  // Client block
+  if(s.clientName || s.jobAddress){
+    html += '<div class="quote__to">';
+    html +=   '<div class="qlab">Prepared for</div>';
+    if(s.clientName) html += '<div class="qname">'+esc(s.clientName)+'</div>';
+    if(s.jobAddress) html += '<div class="qaddr">'+esc(s.jobAddress)+'</div>';
+    html += '</div>';
+  }
+
+  // Distribute profit margin across the visible line amounts so the rows the
+  // client can add up actually sum to the subtotal. The margin lives inside the
+  // prices, never as a hidden line. Trip stays at face value; the rows absorb the
+  // rest. When the minimum fee applies, this spreads it across the tasks cleanly.
+  const target = r.withMargin - r.trip;                 // what the line rows must total
+  const scale  = r.subtotal > 0.005 ? target / r.subtotal : 0;
+  const even   = s.lines.length ? target / s.lines.length : 0;
+  const scLabor = pl => pl.labor * scale;
+  const scMat   = pl => pl.charged * scale;
+  const scLine  = pl => r.subtotal > 0.005 ? pl.lineTotal * scale : even;
+
+  // Line item table
+  html += '<table class="qtable"><thead><tr>';
+  html += '<th>Task</th>';
+  if(!flat) html += '<th class="num">Labor</th>';
+  if(!flat && folded && anyMaterials) html += '<th class="num">Materials</th>';
+  html += '<th class="num">Amount</th>';
+  html += '</tr></thead><tbody>';
+
+  s.lines.forEach((li, i)=>{
+    const pl = r.perLine[i];
+    if(!pl) return;
+    const desc = esc(li.desc || ('Task '+(i+1)));
+    html += '<tr>';
+    html += '<td class="desc">'+desc;
+    if(!flat){
+      const bits = [];
+      bits.push(trimPct(pl.hours)+' hr'+(pl.hours===1?'':'s'));
+      if(s.operator==='crew' && pl.workers>1) bits.push(pl.workers+' workers');
+      html += '<div class="submeta">'+bits.join(' · ')+'</div>';
+    }
+    html += '</td>';
+    // Detailed labor column = task price minus its materials share, so labor + materials = amount
+    if(!flat) html += '<td class="num">'+money(folded ? scLabor(pl) : scLine(pl) - scMat(pl))+'</td>';
+    if(!flat && folded && anyMaterials) html += '<td class="num">'+(pl.charged>0?money(scMat(pl)):'—')+'</td>';
+    // Amount column: folded shows full task price; separate shows labor-only here, materials below
+    html += '<td class="num">'+money(folded || flat ? scLine(pl) : (scLine(pl) - scMat(pl)))+'</td>';
+    html += '</tr>';
+  });
+
+  // Materials as their own rows (separate mode, detailed)
+  if(!flat && !folded && anyMaterials){
+    s.lines.forEach((li,i)=>{
+      const pl = r.perLine[i];
+      if(!pl || pl.charged<=0) return;
+      html += '<tr class="mat"><td class="desc">Materials — '+esc(li.desc||('Task '+(i+1)))+'</td>';
+      html += '<td class="num"></td><td class="num">'+money(scMat(pl))+'</td></tr>';
+    });
+  }
+
+  html += '</tbody></table>';
+
+  // Totals
+  html += '<div class="qtotals">';
+  const showBreak = r.trip>0 || r.tax>0 || (num(s.deposit)>0);
+  if(showBreak){
+    // Subtotal equals the sum of the task rows above (margin already inside them).
+    html += row('Subtotal', money(r.withMargin - r.trip));
+    if(r.trip>0) html += row('Trip charge', money(r.trip));
+    if(r.tax>0)  html += row('Tax', money(r.tax));
+  }
+  html += '<div class="qt-row total"><span>Total</span><span class="amt">'+money(r.total)+'</span></div>';
+  if(num(s.deposit)>0) html += '<div class="qt-row deposit"><span>Deposit due ('+trimPct(num(s.deposit))+'%)</span><span class="amt">'+money(r.deposit)+'</span></div>';
+  html += '</div>';
+
+  // Notes
+  if(s.notes && s.notes.trim()){
+    html += '<div class="quote__notes"><div class="qlab">Notes and terms</div><p>'+esc(s.notes)+'</p></div>';
+  }
+
+  // Print stamp
+  html += '<div class="quote__stamp"><svg viewBox="0 0 150 100" xmlns="http://www.w3.org/2000/svg">'
+        + '<g stroke-linecap="round" fill="none" stroke-width="11">'
+        + '<line x1="20" y1="12" x2="20" y2="88" stroke="#111318"/>'
+        + '<line x1="52" y1="12" x2="52" y2="88" stroke="#111318"/>'
+        + '<line x1="84" y1="12" x2="84" y2="88" stroke="#111318"/>'
+        + '<line x1="116" y1="12" x2="116" y2="88" stroke="#111318"/>'
+        + '<line x1="2" y1="76" x2="134" y2="24" stroke="#2864FF"/></g></svg>'
+        + '<span>COUNT THE <span class="cost">COST</span></span></div>';
+
+  document.getElementById('quoteDoc').innerHTML = html;
+}
+function row(label, amt){ return '<div class="qt-row"><span>'+label+'</span><span class="amt">'+amt+'</span></div>'; }
+
+/* ---- Helpers ---- */
+function esc(str){ return String(str==null?'':str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso+'T00:00:00');
+  if(isNaN(d)) return esc(iso);
+  return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+}
+function addDays(iso, days){
+  if(!iso || !days) return '';
+  const d = new Date(iso+'T00:00:00');
+  if(isNaN(d)) return '';
+  d.setDate(d.getDate()+days);
+  return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
+}
+
+/* ---- Line item rendering ---- */
+function renderLines(){
+  const wrap = document.getElementById('lines');
+  const crew = state.operator === 'crew';
+  wrap.innerHTML = state.lines.map((li,i)=>lineHTML(li,i,crew)).join('');
+}
+function lineHTML(li,i,crew){
+  const only = state.lines.length === 1;
+  return `
+  <div class="lineitem ${crew?'crew':''}" data-i="${i}">
+    <div class="lineitem__top">
+      <span class="lineitem__num">Task ${i+1}</span>
+      <span class="lineitem__amt" data-amt="${i}"></span>
+      <div class="lineitem__actions">
+        <button class="icon-btn" title="Move up" onclick="moveLine(${i},-1)" ${i===0?'disabled':''}>&uarr;</button>
+        <button class="icon-btn" title="Move down" onclick="moveLine(${i},1)" ${i===state.lines.length-1?'disabled':''}>&darr;</button>
+        <button class="icon-btn del" title="Remove" onclick="removeLine(${i})" ${only?'disabled':''}>&times;</button>
+      </div>
+    </div>
+    <div class="field lineitem__desc">
+      <input type="text" data-l="desc" data-i="${i}" value="${esc(li.desc)}" placeholder="e.g. Mount 65in TV, conceal cables">
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Hours</label>
+        <input type="number" data-l="hours" data-i="${i}" value="${li.hours}" min="0" step="0.25">
+      </div>
+      ${crew?`<div class="field">
+        <label>Workers</label>
+        <input type="number" data-l="workers" data-i="${i}" value="${li.workers}" min="1" step="1">
+      </div>`:''}
+      <div class="field">
+        <label>Materials (your cost)</label>
+        <div class="control"><span class="pre">${esc(state.currency||'$')}</span>
+        <input type="number" class="pad-l" data-l="material" data-i="${i}" value="${li.material}" min="0" step="1" ${li.clientSupplies?'disabled':''}></div>
+      </div>
+    </div>
+    <label class="check"><input type="checkbox" data-l="clientSupplies" data-i="${i}" ${li.clientSupplies?'checked':''}> Client supplies the materials for this task</label>
+  </div>`;
+}
+
+/* ---- Line amount labels (updated without full re-render) ---- */
+function updateLineAmounts(r){
+  state.lines.forEach((li,i)=>{
+    const el = document.querySelector('[data-amt="'+i+'"]');
+    if(el && r.perLine[i]) el.textContent = money(r.perLine[i].lineTotal);
+  });
+}
+
+/* ---- Master recompute + render ---- */
+function refresh(){
+  const r = calc();
+  renderOwner(r);
+  updateLineAmounts(r);
+  renderQuote(r);
+  updateSetupSummary();
+  updateMarginHint(r);
+  save();
+}
+
+function updateMarginHint(r){
+  const hint = document.getElementById('margin-hint');
+  hint.textContent = r.mNote ? ('Using '+trimPct(r.mUsed)+'% ('+r.mNote+')') : '';
+}
+
+function updateSetupSummary(){
+  const s = state;
+  const parts = [ s.operator==='crew'?'Crew':'Solo',
+                  money0(num(s.rate))+'/hr',
+                  trimPct(num(s.markup))+'% markup',
+                  trimPct(num(s.margin))+'% margin' ];
+  document.getElementById('setup-summary').textContent = parts.join(' · ');
+}
+
+/* ---- Persist ---- */
+function save(){ store.set(KEY, JSON.stringify(state)); }
+function load(){
+  const raw = store.get(KEY);
+  if(!raw) return null;
+  try { const p = JSON.parse(raw); if(p && Array.isArray(p.lines) && p.lines.length) return p; } catch(e){}
+  return null;
+}
+
+/* ---- Bind setup + job inputs ---- */
+function bindInputs(){
+  document.querySelectorAll('[data-s]').forEach(el=>{
+    const key = el.dataset.s;
+    el.addEventListener('input', ()=>{
+      dismissBannerSilently();
+      if(el.type === 'number'){
+        state[key] = el.value; // keep raw; calc() coerces
+      } else {
+        state[key] = el.value;
+      }
+      if(key==='currency') renderLines();
+      refresh();
+    });
+    // clamp negatives on blur
+    if(el.type === 'number'){
+      el.addEventListener('blur', ()=>{
+        if(num(el.value) < 0){ el.value = 0; state[key] = 0; el.classList.add('has-error'); shake(el); setTimeout(()=>el.classList.remove('has-error'),600); refresh(); }
+      });
+    }
+  });
+}
+
+/* ---- Line input handling via delegation ---- */
+function bindLineDelegation(){
+  const wrap = document.getElementById('lines');
+  wrap.addEventListener('input', e=>{
+    const el = e.target;
+    if(!el.dataset.l) return;
+    dismissBannerSilently();
+    const i = +el.dataset.i, f = el.dataset.l;
+    if(f === 'clientSupplies'){
+      state.lines[i].clientSupplies = el.checked;
+      // toggle the material input disabled state without full re-render
+      const matInput = wrap.querySelector('input[data-l="material"][data-i="'+i+'"]');
+      if(matInput) matInput.disabled = el.checked;
+    } else if(f === 'desc'){
+      state.lines[i].desc = el.value;
+    } else {
+      state.lines[i][f] = el.value;
+    }
+    refresh();
+  });
+  wrap.addEventListener('blur', e=>{
+    const el = e.target;
+    if(!el.dataset.l || el.type!=='number') return;
+    if(num(el.value) < 0){ el.value = (el.dataset.l==='workers'?1:0); state.lines[+el.dataset.i][el.dataset.l]=el.value; el.classList.add('has-error'); shake(el); setTimeout(()=>el.classList.remove('has-error'),600); refresh(); }
+  }, true);
+}
+
+function addLine(){
+  state.lines.push(blankLine());
+  renderLines(); refresh();
+  const wrap = document.getElementById('lines');
+  const last = wrap.querySelector('.lineitem:last-child input[data-l="desc"]');
+  if(last) last.focus();
+}
+function removeLine(i){
+  if(state.lines.length <= 1){ state.lines = [blankLine()]; }
+  else state.lines.splice(i,1);
+  renderLines(); refresh();
+}
+function moveLine(i, dir){
+  const j = i + dir;
+  if(j < 0 || j >= state.lines.length) return;
+  const tmp = state.lines[i]; state.lines[i] = state.lines[j]; state.lines[j] = tmp;
+  renderLines(); refresh();
+}
+
+/* ---- Segmented controls ---- */
+function setOperator(op){
+  const prev = state.operator;
+  if(prev === op){ return; }
+  // Move untouched defaults with the toggle; keep customized values.
+  if(String(state.rate) === String(OP_DEFAULTS[prev].rate)) { state.rate = OP_DEFAULTS[op].rate; document.getElementById('rate').value = state.rate; }
+  if(String(state.markup) === String(OP_DEFAULTS[prev].markup)) { state.markup = OP_DEFAULTS[op].markup; document.getElementById('markup').value = state.markup; }
+  state.operator = op;
+  document.querySelectorAll('#seg-operator button').forEach(b=>b.classList.toggle('is-active', b.dataset.op===op));
+  renderLines(); refresh();
+}
+function setTaxMode(mode){
+  state.taxMode = mode;
+  document.querySelectorAll('#seg-tax button').forEach(b=>b.classList.toggle('is-active', b.dataset.tax===mode));
+  refresh();
+}
+function setDetail(mode){
+  state.detail = mode;
+  document.querySelectorAll('#seg-detail button').forEach(b=>b.classList.toggle('is-active', b.dataset.detail===mode));
+  refresh();
+}
+function setMatMode(mode){
+  state.matMode = mode;
+  document.querySelectorAll('#seg-materials button').forEach(b=>b.classList.toggle('is-active', b.dataset.mat===mode));
+  refresh();
+}
+
+/* ---- Views ---- */
+function setView(v){
+  const build = v === 'build';
+  document.getElementById('view-builder').style.display = build ? 'block' : 'none';
+  document.getElementById('view-quote').style.display = build ? 'none' : 'block';
+  document.getElementById('tab-build').classList.toggle('is-active', build);
+  document.getElementById('tab-quote').classList.toggle('is-active', !build);
+  if(build) fitTotal();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ---- Setup collapse ---- */
+function toggleSetup(){
+  const card = document.getElementById('setup-card');
+  const collapsed = card.classList.toggle('card--collapsed');
+  document.getElementById('setup-toggle').textContent = collapsed ? 'Edit' : 'Hide';
+}
+function collapseSetup(collapse){
+  const card = document.getElementById('setup-card');
+  card.classList.toggle('card--collapsed', collapse);
+  document.getElementById('setup-toggle').textContent = collapse ? 'Edit' : 'Hide';
+}
+
+/* ---- Onboarding banner ---- */
+function showBanner(){ if(!store.get('ctc_seen')) document.getElementById('banner').style.display = 'flex'; }
+function dismissBanner(){ document.getElementById('banner').style.display = 'none'; store.set('ctc_seen','1'); }
+function dismissBannerSilently(){
+  const b = document.getElementById('banner');
+  if(b.style.display !== 'none'){ b.style.display = 'none'; store.set('ctc_seen','1'); }
+}
+
+/* ---- Reset ---- */
+function askReset(){ document.getElementById('resetModal').classList.add('show'); }
+function closeReset(){ document.getElementById('resetModal').classList.remove('show'); }
+function doReset(){
+  store.del(KEY); store.del('ctc_seen');
+  state = sampleState();
+  hydrateForm();
+  renderLines(); refresh();
+  collapseSetup(false);
+  closeReset();
+  setView('build');
+  showBanner();
+}
+document.getElementById('resetModal').addEventListener('click', e=>{ if(e.target.id==='resetModal') closeReset(); });
+
+/* ---- Push state into the setup/job form fields ---- */
+function hydrateForm(){
+  document.querySelectorAll('[data-s]').forEach(el=>{
+    const k = el.dataset.s;
+    if(state[k] !== undefined && state[k] !== null) el.value = state[k];
+  });
+  document.querySelectorAll('#seg-operator button').forEach(b=>b.classList.toggle('is-active', b.dataset.op===state.operator));
+  document.querySelectorAll('#seg-tax button').forEach(b=>b.classList.toggle('is-active', b.dataset.tax===state.taxMode));
+  document.querySelectorAll('#seg-detail button').forEach(b=>b.classList.toggle('is-active', b.dataset.detail===state.detail));
+  document.querySelectorAll('#seg-materials button').forEach(b=>b.classList.toggle('is-active', b.dataset.mat===state.matMode));
+}
+
+function shake(el){ el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); setTimeout(()=>el.classList.remove('shake'),350); }
+
+/* Shrink the result total so a long number (big remodel job) never clips the card */
+function fitTotal(){
+  const el = document.getElementById('ownerTotal');
+  if(!el) return;
+  el.style.fontSize = '';                       // reset to the CSS base for this viewport
+  if(!el.clientWidth) return;                   // card hidden (quote view); refit when shown
+  let size = parseFloat(getComputedStyle(el).fontSize);
+  let guard = 0;
+  while(el.scrollWidth > el.clientWidth + 1 && size > 20 && guard < 60){
+    size -= 1.5; el.style.fontSize = size + 'px'; guard++;
+  }
+}
+let _fitTimer;
+window.addEventListener('resize', ()=>{ clearTimeout(_fitTimer); _fitTimer = setTimeout(fitTotal, 120); });
+
+/* ---- Init ---- */
+function init(){
+  const saved = load();
+  const seen = store.get('ctc_seen');
+  if(saved){
+    state = Object.assign(defaultState(), saved);
+    collapseSetup(true);         // returning user: setup tucked away
+  } else if(seen){
+    state = defaultState();      // seen before but no saved job
+  } else {
+    state = sampleState();       // first ever open: show a working quote
+  }
+  hydrateForm();
+  bindInputs();
+  bindLineDelegation();
+  renderLines();
+  refresh();
+  if(!saved && !seen) showBanner();
+}
+window.addEventListener('load', init);
+</script>
+</body>
+</html>
