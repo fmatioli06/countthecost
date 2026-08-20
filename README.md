@@ -1,11 +1,6 @@
 # Count the Cost
 
-Contractor quote calculator. One HTML file, works offline, no install.
+Pricing and quoting calculators for trades and service businesses. Each one is
+a single HTML file. Download it, open it in any browser, works offline.
 
-## Use it
-
-Download `index.html` and open it in any browser. That's it.
-
-## Develop
-
-See `CLAUDE.md`.
+Tools live in `tools/`. Development notes are in `CLAUDE.md`.
