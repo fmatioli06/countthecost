@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111318">
+<title>Cleaning Price &amp; Quote Calculator · Count the Cost</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 110 100'%3E%3Cg stroke-linecap='round' fill='none' stroke-width='15'%3E%3Cline x1='24' y1='16' x2='24' y2='84' stroke='%23111318'/%3E%3Cline x1='55' y1='16' x2='55' y2='84' stroke='%23111318'/%3E%3Cline x1='86' y1='16' x2='86' y2='84' stroke='%23111318'/%3E%3Cline x1='8' y1='74' x2='102' y2='26' stroke='%232864FF'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     COUNT THE COST — brand tokens (this file is the source of truth)
+     ============================================================ */
+  :root {
+    --font-display: "Archivo", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-lockup: "Archivo Black", "Archivo", -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+    /* core four */
+    --ink: #111318;
+    --blue: #2864FF;
+    --white: #F7F8FA;
+    --slate: #667085;
+
+    /* working tokens */
+    --surface-dark: #16191F;
+    --raised: #1B1F27;
+    --border-dark: #262B34;
+    --border-strong-dark: #333A45;
+    --slate-light: #98A2B3;
+    --blue-hover: #3D74FF;
+    --blue-press: #1E52D6;
+    --blue-tint: rgba(40,100,255,.12);
+    --blue-tint-strong: rgba(40,100,255,.20);
+    --blue-on-dark: #6E9BFF;
+    --line-light: #E4E7EC;
+    --warning: #F5A524;
+    --warning-tint: rgba(245,165,36,.12);
+    --error: #F04438;
+    --error-tint: rgba(240,68,56,.10);
+
+    /* light work surface */
+    --page: #F7F8FA;
+    --card: #FFFFFF;
+    --field: #FCFCFD;
+    --text: #111318;
+    --muted: #667085;
+
+    --r-card: 14px;
+    --r-input: 9px;
+
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { overflow-x: hidden; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--page);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    font-variant-numeric: tabular-nums;
+    padding-bottom: var(--s7);
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+  .wrap { max-width: 720px; width: 100%; margin: 0 auto; padding: 0 var(--s4); }
+
+  /* ---------- The tally mark ---------- */
+  .tally { display: block; }
+  .tally line.v { stroke-width: 11; }
+
+  /* ---------- Dark brand frame (header) ---------- */
+  .brandbar {
+    background: var(--ink);
+    color: var(--white);
+    position: sticky; top: 0; z-index: 50;
+    border-bottom: 1px solid var(--border-dark);
+  }
+  .brandbar__in {
+    max-width: 720px; margin: 0 auto; padding: 13px var(--s4);
+    display: flex; align-items: center; justify-content: space-between; gap: var(--s3);
+  }
+  .lockup { display: flex; align-items: center; gap: 9px; }
+  .lockup .tally { height: 24px; width: auto; }
+  .lockup__text {
+    font-family: var(--font-lockup); font-size: 0.98rem; letter-spacing: -0.035em;
+    text-transform: uppercase; line-height: 1; white-space: nowrap;
+  }
+  .lockup__text .count { color: var(--white); }
+  .lockup__text .the   { color: var(--slate); }
+  .lockup__text .cost  { color: var(--blue); }
+  .tagline {
+    font-size: 0.62rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--slate-light);
+  }
+  .brandbar__right { display: flex; align-items: center; gap: var(--s3); }
+  .gear { width: 38px; height: 38px; border-radius: 9px; border: 1px solid var(--border-strong-dark); background: transparent; color: var(--white); cursor: pointer; display: grid; place-items: center; flex: none; transition: background .15s ease; }
+  .gear:hover { background: var(--surface-dark); }
+
+  /* settings panel */
+  .settings-shell { max-width: 620px; margin: var(--s4) auto; }
+  .settings { background: var(--card); color: var(--text); border-radius: var(--r-card); box-shadow: 0 20px 60px rgba(0,0,0,.4); padding: var(--s5); }
+  .settings__head { display: flex; justify-content: space-between; align-items: center; gap: var(--s3); position: sticky; top: 0; }
+  .settings__head h2 { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; letter-spacing: -0.02em; }
+  .settings section { padding: var(--s4) 0; border-top: 1px solid var(--line-light); }
+  .settings section:first-of-type { border-top: none; }
+  .settings h3 { font-family: var(--font-display); font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
+  .settings section > .sub { font-size: 0.82rem; color: var(--muted); margin-bottom: var(--s3); }
+  .set-row { display: grid; grid-template-columns: minmax(0,1fr) 92px; gap: var(--s3); align-items: center; padding: 7px 0; }
+  .set-row label { font-size: 0.92rem; font-weight: 500; }
+  .set-row .baseline { text-align: right; color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; padding-right: 4px; font-size: 0.9rem; }
+  .settings input { font-family: var(--font-body); font-size: 0.92rem; color: var(--text); background: var(--field); border: 1px solid var(--line-light); border-radius: var(--r-input); padding: 9px 10px; min-height: 42px; width: 100%; text-align: right; }
+  .settings input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-tint); }
+  .settings textarea { font-family: var(--font-body); font-size: 0.9rem; color: var(--text); background: var(--field); border: 1px solid var(--line-light); border-radius: var(--r-input); padding: 10px 12px; width: 100%; resize: vertical; line-height: 1.5; }
+  .settings textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-tint); }
+  .settings__explain p { font-size: 0.86rem; color: var(--text); line-height: 1.55; margin-bottom: var(--s2); }
+  .settings__explain code { background: var(--blue-tint); color: var(--blue-press); padding: 1px 6px; border-radius: 5px; font-size: 0.82rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .settings__foot { display: flex; gap: var(--s2); margin-top: var(--s4); }
+  .settings__foot .btn { flex: 1; }
+
+  /* ---------- Tool title on the work surface ---------- */
+  .tool-head { padding: var(--s5) 0 var(--s2); }
+  .tool-head h1 {
+    font-family: var(--font-display); font-weight: 800; font-size: 1.5rem;
+    letter-spacing: -0.02em; line-height: 1.1; color: var(--text);
+  }
+  .tool-head p { font-size: 0.9rem; color: var(--muted); margin-top: 4px; }
+
+  /* ---------- Onboarding banner (near-black) ---------- */
+  .banner {
+    display: none; align-items: center; gap: var(--s3);
+    background: var(--ink); color: var(--white);
+    border-radius: var(--r-card); padding: var(--s3) var(--s4);
+    margin: var(--s3) 0 0; font-size: 0.88rem;
+  }
+  .banner.show { display: flex; }
+  .banner .lead { color: var(--blue-on-dark); font-weight: 700; }
+  .banner .x {
+    margin-left: auto; background: none; border: none; cursor: pointer;
+    font-size: 20px; line-height: 1; color: var(--slate-light); padding: 4px; flex: none;
+  }
+
+  /* ---------- Sticky result card (near-black, the hero) ---------- */
+  .resultbar {
+    position: sticky; top: 58px; z-index: 40;
+    background: var(--ink); color: var(--white);
+    border-radius: var(--r-card); box-shadow: 0 10px 30px rgba(17,19,24,.18);
+    padding: var(--s4); margin: var(--s4) 0;
+  }
+  .resultbar__top { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--s3); flex-wrap: wrap; }
+  .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--slate-light); font-weight: 600; }
+  .resultbar__price {
+    font-family: var(--font-body); font-weight: 700;
+    font-size: 2.7rem; line-height: 1; letter-spacing: -0.02em; color: var(--white);
+    font-variant-numeric: tabular-nums; margin-top: 6px;
+  }
+  .price-flash { animation: flash .4s ease; }
+  @keyframes flash { 0% { opacity: 0.35; transform: translateY(2px); } 100% { opacity: 1; transform: none; } }
+
+  .resultbar__stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--s2); margin-top: var(--s3); padding-top: var(--s3); border-top: 1px solid var(--border-strong-dark); }
+  .stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .st__k { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--slate-light); font-weight: 600; }
+  .st__v { font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--white); }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.82rem; font-weight: 700; font-variant-numeric: tabular-nums;
+    padding: 5px 11px; border-radius: 999px; margin-top: 6px;
+    background: var(--blue-tint-strong); color: var(--blue-on-dark);
+  }
+
+  .btn {
+    font-family: var(--font-body); font-weight: 600; font-size: 0.95rem;
+    border-radius: var(--r-input); cursor: pointer; border: 1px solid transparent;
+    padding: 12px 16px; min-height: 44px; transition: transform .12s ease, background .15s ease, box-shadow .15s ease;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn--primary { background: var(--blue); color: #fff; }
+  .btn--primary:hover { background: var(--blue-hover); }
+  .btn--primary:active { background: var(--blue-press); }
+  .btn--ghost { background: var(--card); color: var(--text); border-color: var(--line-light); }
+  .btn--ghost:hover { background: var(--white); }
+  .btn--block { width: 100%; display: block; }
+  .resultbar__cta { margin-top: var(--s4); }
+
+  /* ---------- Cards (light work surface) ---------- */
+  .card {
+    background: var(--card); border: 1px solid var(--line-light);
+    border-radius: var(--r-card); padding: var(--s4); margin-bottom: var(--s4);
+  }
+  .card__head { display: flex; align-items: center; gap: 10px; margin-bottom: var(--s4); }
+  .card__head .n {
+    width: 24px; height: 24px; border-radius: 7px; flex: none;
+    background: var(--blue-tint); color: var(--blue-press);
+    font-size: 0.72rem; font-weight: 700; display: grid; place-items: center;
+  }
+  .card__head h2 { font-family: var(--font-display); font-size: 1.02rem; font-weight: 700; letter-spacing: -0.01em; }
+  .card__head p { font-size: 0.75rem; color: var(--muted); }
+
+  /* ---------- Fields ---------- */
+  .grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: var(--s3); }
+  .grid--3 { grid-template-columns: minmax(0,1fr) minmax(0,1fr) minmax(0,1fr); }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field > input, .field > select, .field > .inline { margin-top: auto; }  /* pin control to bottom so paired inputs align even when one label wraps */
+  .field--full { grid-column: 1 / -1; }
+  .field label { font-size: 0.78rem; font-weight: 600; color: var(--text); }
+  .field .hint { font-size: 0.72rem; color: var(--muted); font-weight: 400; }
+
+  .field input, .field select {
+    font-family: var(--font-body); font-size: 0.95rem; color: var(--text);
+    background: var(--field); border: 1px solid var(--line-light);
+    border-radius: var(--r-input); padding: 11px 12px; min-height: 44px; width: 100%;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .field input:focus, .field select:focus {
+    outline: none; border-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-tint);
+  }
+  .field select { appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat: no-repeat; background-position: right 12px center; padding-right: 34px; }
+
+  .inline { position: relative; display: flex; align-items: center; min-width: 0; width: 100%; }
+  .inline .affix { position: absolute; color: var(--muted); font-size: 0.9rem; font-weight: 500; pointer-events: none; }
+  .inline .affix--pre { left: 12px; }
+  .inline .affix--suf { right: 12px; }
+  .inline input.pre { padding-left: 26px; }
+  .inline input.suf { padding-right: 28px; }
+
+  .discount-row { display: grid; grid-template-columns: 96px minmax(0,1fr); gap: var(--s2); }
+
+  /* hours-estimation mode toggle + readout */
+  .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--white); border: 1px solid var(--line-light); border-radius: var(--r-input); padding: 4px; }
+  .seg__btn { font-family: var(--font-body); font-weight: 600; font-size: 0.88rem; min-height: 40px; border: none; background: transparent; color: var(--muted); border-radius: 6px; cursor: pointer; transition: background .15s ease, color .15s ease; }
+  .seg__btn.active { background: var(--blue-tint); color: var(--blue-press); }
+  .hidden { display: none !important; }
+  .readout { margin-top: 8px; background: var(--blue-tint); color: var(--text); border-radius: var(--r-input); padding: 10px 12px; font-size: 0.9rem; }
+  .readout b { color: var(--blue-press); font-variant-numeric: tabular-nums; }
+  .readout .muted { color: var(--muted); font-size: 0.82rem; }
+
+  /* ---------- Add-ons ---------- */
+  .addon {
+    display: grid; grid-template-columns: minmax(0,1fr) 88px 88px; gap: var(--s2);
+    align-items: center; padding: 10px 0; border-top: 1px solid var(--line-light);
+  }
+  .addon > div { min-width: 0; }
+  .addon:first-of-type { border-top: none; }
+  .addon__name { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .addon__name span { font-size: 0.9rem; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .addon.off .addon__name span { color: var(--muted); }
+  .addon.off input.mini { opacity: 0.5; }
+  .addon-head { display: grid; grid-template-columns: minmax(0,1fr) 88px 88px; gap: var(--s2); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; padding-bottom: 4px; }
+  .addon-head span:nth-child(2), .addon-head span:nth-child(3) { text-align: right; padding-right: 4px; }
+  input.mini { width: 100%; font-size: 0.9rem !important; padding: 10px 10px !important; min-height: 44px !important; text-align: right; }
+  .addon__del { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 15px; padding: 4px; }
+
+  /* toggle switch */
+  .switch { position: relative; width: 40px; height: 24px; flex: none; }
+  .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .switch .track { position: absolute; inset: 0; background: #C9CED6; border-radius: 999px; transition: background .18s ease; cursor: pointer; }
+  .switch .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: transform .18s ease; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
+  .switch input:checked + .track { background: var(--blue); }
+  .switch input:checked + .track::after { transform: translateX(16px); }
+
+  .add-custom { margin-top: var(--s3); }
+  .custom-add { display: none; margin-top: var(--s3); padding: var(--s3); background: var(--white); border: 1px solid var(--line-light); border-radius: var(--r-input); }
+  .custom-add.show { display: block; animation: flash .25s ease; }
+  .custom-add__grid { display: grid; grid-template-columns: minmax(0,1fr) 96px 96px; gap: var(--s2); }
+  .custom-add__grid input { font-size: 0.9rem; padding: 10px 12px; min-height: 44px; }
+  .custom-add__row { display: flex; gap: var(--s2); margin-top: var(--s3); }
+  .custom-add__row .btn { flex: 1; }
+  @media (max-width: 560px) { .custom-add__grid { grid-template-columns: 1fr; } }
+
+  /* ---------- Result breakdown (near-black card) ---------- */
+  .panel { background: var(--surface-dark); border: 1px solid var(--border-dark); border-radius: var(--r-input); padding: var(--s4); color: var(--white); }
+  .panel__row { display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; font-size: 0.92rem; }
+  .panel__row + .panel__row { border-top: 1px solid var(--border-dark); }
+  .panel__row .k { color: var(--slate-light); }
+  .panel__row .v { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--white); }
+  .panel__row--big { padding: var(--s3) 0; }
+  .panel__row--big .k { color: var(--white); font-weight: 600; }
+  .panel__row--big .v { font-size: 1.3rem; font-weight: 700; }
+  .v--pos { color: var(--blue-on-dark) !important; }   /* positive = BLUE, never green */
+  .v--neg { color: var(--error) !important; }
+
+  .note {
+    display: none; gap: 8px; align-items: flex-start;
+    font-size: 0.82rem; border-radius: var(--r-input); padding: 10px 12px; margin-top: var(--s3);
+  }
+  .note.show { display: flex; }
+  .note--warn { background: var(--warning-tint); color: #8a5a09; }
+  .note--bad { background: var(--error-tint); color: #a5271e; }
+  .note--info { background: var(--blue-tint); color: var(--blue-press); }
+
+  .foot { text-align: center; font-size: 0.72rem; color: var(--muted); padding: var(--s5) 0 0; }
+  .foot .stamp { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; color: var(--text); }
+  .foot .stamp .cost { color: var(--blue); }
+  .foot button { background: none; border: none; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 0.72rem; font-family: inherit; }
+
+  .logo-preview { display: none; align-items: center; gap: 10px; margin-top: 6px; }
+  .logo-preview.show { display: flex; }
+  .logo-preview img { height: 38px; width: auto; border-radius: 6px; border: 1px solid var(--line-light); }
+  .logo-preview button { background: none; border: none; color: var(--error); cursor: pointer; font-size: 0.78rem; text-decoration: underline; }
+
+  /* ============================================================
+     QUOTE (customer-facing — buyer's brand only, no CTC, no internal math)
+     ============================================================ */
+  .overlay {
+    display: none; position: fixed; inset: 0; z-index: 100;
+    background: rgba(17,19,24,0.72); padding: var(--s4);
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+  }
+  .overlay.show { display: block; }
+  .quote-shell { max-width: 620px; margin: var(--s4) auto; }
+  .quote-actions { display: flex; gap: var(--s2); margin-bottom: var(--s3); }
+  .quote-actions .btn { flex: 1; }
+
+  .quote {
+    background: #ffffff; color: #111318;
+    border-radius: var(--r-card); box-shadow: 0 20px 60px rgba(0,0,0,.4);
+    padding: 34px; font-family: var(--font-body);
+  }
+  .quote__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; border-bottom: 2px solid #ECECEF; padding-bottom: 20px; margin-bottom: 22px; }
+  .quote__biz { min-width: 0; }
+  .quote__biz img { height: 46px; width: auto; margin-bottom: 8px; display: block; }
+  .quote__biz .name { font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; letter-spacing: -0.015em; color: #111318; }
+  .quote__biz .contact { font-size: 0.82rem; color: #667085; margin-top: 3px; white-space: pre-line; }
+  .quote__meta { text-align: right; flex: none; }
+  .quote__meta .tag { font-family: var(--font-display); font-size: 1rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blue); }
+  .quote__meta .date { font-size: 0.8rem; color: #667085; margin-top: 4px; }
+
+  .quote__to { font-size: 0.88rem; margin-bottom: 18px; }
+  .quote__to .lbl { color: #98A2B3; text-transform: uppercase; font-size: 0.66rem; letter-spacing: 0.1em; font-weight: 700; }
+  .quote__to .who { font-weight: 600; font-size: 1rem; margin-top: 2px; }
+  .quote__to .scope { color: #667085; margin-top: 2px; }
+
+  .quote table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+  .quote th { text-align: left; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; color: #98A2B3; font-weight: 700; padding: 0 0 8px; border-bottom: 1px solid #ECECEF; }
+  .quote th.r, .quote td.r { text-align: right; }
+  .quote td { padding: 11px 0; font-size: 0.92rem; border-bottom: 1px solid #F2F2F5; vertical-align: top; }
+  .quote td .desc { color: #667085; font-size: 0.8rem; margin-top: 2px; }
+  .quote td.r { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .quote__totals { margin-left: auto; width: 62%; margin-top: 14px; }
+  .quote__totals .row { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 6px 0; }
+  .quote__totals .row .k { color: #667085; }
+  .quote__totals .row .v { font-variant-numeric: tabular-nums; }
+  .quote__totals .row.total { border-top: 2px solid #111318; margin-top: 6px; padding-top: 12px; font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; }
+  .quote__totals .row.total .k { color: #111318; }
+  .quote__totals .row.total .v { color: var(--blue); }
+
+  .quote__note { margin-top: 26px; padding-top: 16px; border-top: 1px solid #ECECEF; font-size: 0.8rem; color: #667085; white-space: pre-line; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 560px) {
+    .grid--3 { grid-template-columns: 1fr 1fr; }
+    .resultbar__price { font-size: 2.3rem; }
+    .tagline { display: none; }
+    .quote { padding: 22px; }
+    .quote__head { flex-direction: column; gap: 12px; }
+    .quote__meta { text-align: left; }
+    .quote__totals { width: 100%; }
+  }
+
+  /* ---------- Print: only the quote ---------- */
+  @media print {
+    body { background: #fff; padding: 0; }
+    body.print-quote > *:not(#overlay) { display: none !important; }
+    body.print-quote #settingsOverlay { display: none !important; }
+    body.print-quote #overlay { display: block !important; position: static; background: none; padding: 0; overflow: visible; }
+    .quote-actions { display: none !important; }
+    .quote-shell { max-width: none; margin: 0; }
+    .quote { box-shadow: none; border-radius: 0; padding: 12px 4px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ DARK BRAND FRAME ============ -->
+<header class="brandbar">
+  <div class="brandbar__in">
+    <div class="lockup">
+      <svg class="tally" viewBox="0 0 150 100" xmlns="http://www.w3.org/2000/svg" aria-label="Count the Cost">
+        <g stroke-linecap="round" fill="none">
+          <line class="v" x1="20" y1="12" x2="20" y2="88" stroke="#F7F8FA"/>
+          <line class="v" x1="52" y1="12" x2="52" y2="88" stroke="#F7F8FA"/>
+          <line class="v" x1="84" y1="12" x2="84" y2="88" stroke="#F7F8FA"/>
+          <line class="v" x1="116" y1="12" x2="116" y2="88" stroke="#F7F8FA"/>
+          <line x1="2" y1="76" x2="134" y2="24" stroke="#2864FF" stroke-width="11"/>
+        </g>
+      </svg>
+    </div>
+    <div class="brandbar__right">
+      <span class="tagline">Know your numbers before you build</span>
+      <button class="gear" id="settingsBtn" aria-label="Settings and assumptions" title="Settings &amp; assumptions">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="tool-head">
+    <h1 id="appName">Cleaning Price &amp; Quote Calculator</h1>
+    <p>Price residential cleaning jobs for profit, then hand your customer a clean quote.</p>
+  </div>
+
+  <div class="banner" id="banner">
+    <span class="lead">Start here.</span>
+    <span>A sample job is loaded. Swap in your own numbers to price a real one.</span>
+    <button class="x" id="bannerX" aria-label="Dismiss">×</button>
+  </div>
+
+  <!-- ============ HERO RESULT CARD ============ -->
+  <div class="resultbar">
+    <div class="resultbar__top">
+      <div>
+        <div class="label">Recommended customer price</div>
+        <div class="resultbar__price" id="outPrice">$0</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="label">Profit margin</div>
+        <span class="chip" id="outMarginChip">0%</span>
+      </div>
+    </div>
+    <div class="resultbar__stats">
+      <div class="stat"><span class="st__k">Costs you</span><span class="st__v" id="stCost">$0</span></div>
+      <div class="stat"><span class="st__k">Your profit</span><span class="st__v v--pos" id="stProfit">$0</span></div>
+      <div class="stat"><span class="st__k">Rev / labor hr</span><span class="st__v" id="stPerHour">$0</span></div>
+    </div>
+    <div class="resultbar__cta">
+      <button class="btn btn--primary btn--block" id="quoteBtn">Generate Customer Quote →</button>
+    </div>
+  </div>
+
+  <div id="alerts">
+    <div class="note note--bad" id="noteLoss"><span>■</span><span>This job loses money. Raise your margin, cut costs, or charge more.</span></div>
+    <div class="note note--warn" id="noteLabor"><span>■</span><span>Labor is set to $0. If you're doing the cleaning, pay yourself an hourly wage so your own time isn't priced as free.</span></div>
+    <div class="note note--warn" id="noteMin"><span>■</span><span id="noteMinText"></span></div>
+    <div class="note note--info" id="noteThin"><span>■</span><span id="noteThinText"></span></div>
+  </div>
+
+  <!-- ============ YOUR BUSINESS ============ -->
+  <div class="card">
+    <div class="card__head">
+      <div class="n">1</div>
+      <div><h2>Your Business</h2><p>Prints on the customer quote. All optional.</p></div>
+    </div>
+    <div class="grid">
+      <div class="field field--full">
+        <label for="bizName">Business name</label>
+        <input type="text" id="bizName" placeholder="e.g. Sparkle Clean Co.">
+      </div>
+      <div class="field field--full">
+        <label for="bizContact">Phone / email <span class="hint">shown under your name</span></label>
+        <input type="text" id="bizContact" placeholder="e.g. (555) 123-4567  •  hello@sparkleclean.com">
+      </div>
+      <div class="field field--full">
+        <label for="logoInput">Logo <span class="hint">optional, appears top of quote</span></label>
+        <input type="file" id="logoInput" accept="image/*">
+        <div class="logo-preview" id="logoPreview">
+          <img id="logoImg" alt="Logo preview">
+          <button type="button" id="logoRemove">Remove logo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ THE JOB ============ -->
+  <div class="card">
+    <div class="card__head">
+      <div class="n">2</div>
+      <div><h2>The Job</h2><p>Describes the work. Also prints on the quote.</p></div>
+    </div>
+    <div class="grid">
+      <div class="field">
+        <label for="service">Service</label>
+        <select id="service">
+          <option>Standard Clean</option>
+          <option>Deep Clean</option>
+          <option>Move-In / Move-Out</option>
+          <option>Recurring Clean</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="condition">Condition</label>
+        <select id="condition"><option>Light</option><option>Average</option><option>Heavy</option></select>
+      </div>
+      <div class="field field--full">
+        <label for="sqft">Square footage <span class="hint">drives the time estimate</span></label>
+        <input type="number" id="sqft" inputmode="numeric" min="0" placeholder="e.g. 1800">
+      </div>
+      <div class="field">
+        <label for="beds">Bedrooms <span class="hint">quote detail only</span></label>
+        <input type="number" id="beds" inputmode="numeric" min="0" placeholder="e.g. 3">
+      </div>
+      <div class="field">
+        <label for="baths">Bathrooms <span class="hint">quote detail only</span></label>
+        <input type="number" id="baths" inputmode="decimal" min="0" placeholder="e.g. 2">
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ADD-ONS ============ -->
+  <div class="card">
+    <div class="card__head">
+      <div class="n">3</div>
+      <div><h2>Add-Ons</h2><p>Flip on the extras. Set what you charge and what it costs you.</p></div>
+    </div>
+    <div class="addon-head"><span>Extra</span><span>Charge</span><span>Your cost</span></div>
+    <div id="addonList"></div>
+
+    <div class="custom-add" id="customAdd">
+      <div class="custom-add__grid">
+        <input type="text" id="customName" maxlength="40" placeholder="Name the extra, e.g. Inside cabinets">
+        <div class="inline"><span class="affix affix--pre">$</span><input class="pre" type="number" id="customPrice" inputmode="decimal" min="0" placeholder="25" aria-label="charge"></div>
+        <div class="inline"><span class="affix affix--pre">$</span><input class="pre" type="number" id="customCost" inputmode="decimal" min="0" placeholder="0" aria-label="your cost"></div>
+      </div>
+      <div class="custom-add__row">
+        <button class="btn btn--ghost" id="customCancel">Cancel</button>
+        <button class="btn btn--primary" id="customSave">Add extra</button>
+      </div>
+    </div>
+
+    <button class="btn btn--ghost btn--block add-custom" id="addAddon">+ Add your own extra</button>
+  </div>
+
+  <!-- ============ YOUR COSTS ============ -->
+  <div class="card">
+    <div class="card__head">
+      <div class="n">4</div>
+      <div><h2>Your Costs</h2><p>What this job actually costs you to run.</p></div>
+    </div>
+    <div class="grid">
+      <div class="field">
+        <label for="cleaners">Cleaners on the job <span class="hint">count yourself</span></label>
+        <input type="number" id="cleaners" inputmode="numeric" min="0" placeholder="e.g. 2">
+      </div>
+      <div class="field">
+        <label for="hourly">Pay per cleaner / hour <span class="hint">cleaning it yourself? use your own wage</span></label>
+        <div class="inline"><span class="affix affix--pre">$</span><input class="pre" type="number" id="hourly" inputmode="decimal" min="0" placeholder="22"></div>
+      </div>
+      <div class="field field--full">
+        <label>Estimate hours from</label>
+        <div class="seg" id="modeSeg">
+          <button type="button" class="seg__btn" data-mode="sqft">Square footage</button>
+          <button type="button" class="seg__btn" data-mode="manual">Enter manually</button>
+        </div>
+      </div>
+
+      <div class="field field--full mode-sqft" id="sqftEst">
+        <label for="speedPreset">Cleaning pace <span class="hint">how fast you work a standard clean</span></label>
+        <select id="speedPreset">
+          <option value="quick">Quick — light touch</option>
+          <option value="standard">Standard pace</option>
+          <option value="thorough">Thorough — detailed</option>
+          <option value="custom">Custom rate…</option>
+        </select>
+        <div class="inline hidden" id="customSpeed" style="margin-top:8px;">
+          <input class="suf" type="number" id="productivity" inputmode="numeric" min="1" placeholder="400"><span class="affix affix--suf">sq ft/hr</span>
+        </div>
+        <div class="readout" id="hoursReadout"></div>
+        <div class="hint" id="speedHint" style="margin-top:6px;">Deep cleans and heavy jobs add time on top of this automatically.</div>
+      </div>
+
+      <div class="field field--full mode-manual" id="manualHours">
+        <label for="hours">Estimated hours on site <span class="hint">how long the whole job takes</span></label>
+        <input type="number" id="hours" inputmode="decimal" min="0" placeholder="e.g. 3">
+        <div class="hint" style="margin-top:6px;">Here, service type and condition just describe the job on the quote.</div>
+      </div>
+      <div class="field">
+        <label for="supplies">Supplies</label>
+        <div class="inline"><span class="affix affix--pre">$</span><input class="pre" type="number" id="supplies" inputmode="decimal" min="0" placeholder="15"></div>
+      </div>
+      <div class="field">
+        <label for="travel">Travel / gas</label>
+        <div class="inline"><span class="affix affix--pre">$</span><input class="pre" type="number" id="travel" inputmode="decimal" min="0" placeholder="10"></div>
+      </div>
+      <div class="field">
+        <label for="overhead">Overhead <span class="hint">insurance, admin, etc.</span></label>
+        <div class="inline"><span class="affix affix--pre">$</span><input class="pre" type="number" id="overhead" inputmode="decimal" min="0" placeholder="20"></div>
+      </div>
+      <div class="field">
+        <label for="fee">Card / payment fee</label>
+        <div class="inline"><input class="suf" type="number" id="fee" inputmode="decimal" min="0" max="100" placeholder="3"><span class="affix affix--suf">%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PRICING CONTROLS ============ -->
+  <div class="card">
+    <div class="card__head">
+      <div class="n">5</div>
+      <div><h2>Pricing</h2><p>Set your margin and guardrails. Price updates as you type.</p></div>
+    </div>
+    <div class="grid">
+      <div class="field">
+        <label for="margin">Profit margin you want</label>
+        <div class="inline"><input class="suf" type="number" id="margin" inputmode="decimal" min="0" max="95" placeholder="40"><span class="affix affix--suf">%</span></div>
+      </div>
+      <div class="field">
+        <label for="minPrice">Minimum job price</label>
+        <div class="inline"><span class="affix affix--pre">$</span><input class="pre" type="number" id="minPrice" inputmode="decimal" min="0" placeholder="120"></div>
+      </div>
+      <div class="field field--full">
+        <label for="discountVal">Discount <span class="hint">leave at 0 for none</span></label>
+        <div class="discount-row">
+          <select id="discountType"><option value="amount">$ off</option><option value="percent">% off</option></select>
+          <input type="number" id="discountVal" inputmode="decimal" min="0" placeholder="0">
+        </div>
+      </div>
+      <div class="field">
+        <label for="tax">Sales tax <span class="hint">if you charge it</span></label>
+        <div class="inline"><input class="suf" type="number" id="tax" inputmode="decimal" min="0" max="100" placeholder="0"><span class="affix affix--suf">%</span></div>
+      </div>
+      <div class="field">
+        <label for="customer">Customer name <span class="hint">for the quote</span></label>
+        <input type="text" id="customer" placeholder="e.g. Jordan Lee">
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <div><span class="stamp">Count the <span class="cost">Cost</span></span> · v2.3 · Works offline · Your data stays on this device.</div>
+    <div style="margin-top:6px;"><button id="resetBtn">Reset everything</button></div>
+  </div>
+</div>
+
+<!-- ============ QUOTE OVERLAY ============ -->
+<div class="overlay" id="overlay">
+  <div class="quote-shell">
+    <div class="quote-actions">
+      <button class="btn btn--ghost" id="closeQuote">← Back to editing</button>
+      <button class="btn btn--primary" id="printQuote">Print / Save as PDF</button>
+    </div>
+    <div class="quote" id="quote"><!-- built by JS --></div>
+  </div>
+</div>
+
+<!-- ============ SETTINGS OVERLAY ============ -->
+<div class="overlay" id="settingsOverlay">
+  <div class="settings-shell">
+    <div class="settings">
+      <div class="settings__head">
+        <h2>Settings &amp; assumptions</h2>
+        <button class="btn btn--primary" id="closeSettings">Done</button>
+      </div>
+
+      <section>
+        <h3>Cleaning pace</h3>
+        <div class="sub">Square feet one cleaner covers in an hour, for a standard clean. These are starting estimates — tune them to match your own jobs. They feed the three choices in the Cleaning pace dropdown.</div>
+        <div class="set-row"><label for="setPaceQuick">Quick — light touch</label><input type="number" id="setPaceQuick" inputmode="numeric" min="1"></div>
+        <div class="set-row"><label for="setPaceStandard">Standard pace</label><input type="number" id="setPaceStandard" inputmode="numeric" min="1"></div>
+        <div class="set-row"><label for="setPaceThorough">Thorough — detailed</label><input type="number" id="setPaceThorough" inputmode="numeric" min="1"></div>
+      </section>
+
+      <section>
+        <h3>Service time multipliers</h3>
+        <div class="sub">How much longer each service takes versus a standard clean. A standard clean is the baseline at 1.0.</div>
+        <div class="set-row"><label>Standard clean</label><span class="baseline">1.0 · baseline</span></div>
+        <div class="set-row"><label for="setDeep">Deep clean</label><input type="number" id="setDeep" inputmode="decimal" min="0" step="0.05"></div>
+        <div class="set-row"><label for="setMoveInOut">Move-in / move-out</label><input type="number" id="setMoveInOut" inputmode="decimal" min="0" step="0.05"></div>
+        <div class="set-row"><label for="setRecurring">Recurring clean</label><input type="number" id="setRecurring" inputmode="decimal" min="0" step="0.05"></div>
+      </section>
+
+      <section>
+        <h3>Condition time multipliers</h3>
+        <div class="sub">How much the home's condition stretches the time. Average is the baseline at 1.0.</div>
+        <div class="set-row"><label for="setLight">Light</label><input type="number" id="setLight" inputmode="decimal" min="0" step="0.05"></div>
+        <div class="set-row"><label>Average</label><span class="baseline">1.0 · baseline</span></div>
+        <div class="set-row"><label for="setHeavy">Heavy</label><input type="number" id="setHeavy" inputmode="decimal" min="0" step="0.05"></div>
+      </section>
+
+      <section class="settings__explain">
+        <h3>How the price is calculated</h3>
+        <p>In square-footage mode, the tool estimates the time, then prices it for profit. Step by step:</p>
+        <p><b>1. Hours.</b> <code>square feet ÷ cleaning pace</code> gives the cleaner-hours for a standard clean. That's multiplied by the service and condition numbers above. Only square footage feeds this — bedrooms and bathrooms are quote details. More cleaners finishes the same work faster, so it lowers on-site time, not total labor.</p>
+        <p><b>2. Labor.</b> <code>cleaner-hours × pay per hour</code>. If you're cleaning it yourself, your wage counts here too.</p>
+        <p><b>3. Your cost.</b> <code>labor + supplies + travel + overhead</code>, plus the cost of any add-ons and the card fee.</p>
+        <p><b>4. Price.</b> <code>cost ÷ (1 − margin − card fee)</code> marks the standard clean up so you still hit your target margin after the processor takes its cut. Add-on charges are added on top, then discount, minimum, and tax.</p>
+        <p>These assumptions only apply in square-footage mode. In "Enter manually" mode you set the hours yourself, so service and condition just describe the job on the quote.</p>
+      </section>
+
+      <section>
+        <h3>Default quote note</h3>
+        <div class="sub">The fine print printed at the bottom of every customer quote. Edit it once and it sticks.</div>
+        <textarea id="setQuoteNote" rows="4" placeholder="e.g. This estimate is valid for 30 days."></textarea>
+      </section>
+
+      <div class="settings__foot">
+        <button class="btn btn--ghost" id="resetSettings">Reset to defaults</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   Cleaning Price & Quote Calculator — Count the Cost
+   Single file, no dependencies.
+   ================================================================ */
+const APP_NAME = "Cleaning Price & Quote Calculator";
+const LS_DATA  = "cleanquote_data_v1";
+const LS_SEEN  = "cleanquote_seen_v1";
+
+/* Realistic sample so the tool shows a working result on first open */
+const SAMPLE = {
+  bizName: "Sparkle Clean Co.",
+  bizContact: "(555) 123-4567  •  hello@sparkleclean.co",
+  customer: "Jordan Lee",
+  service: "Standard Clean", condition: "Average",
+  sqft: 1800, beds: 3, baths: 2,
+  estimateMode: "sqft", speedPreset: "standard", productivity: 600,
+  cleaners: 2, hourly: 22, hours: 3,
+  supplies: 15, travel: 10, overhead: 20, fee: 3,
+  margin: 40, minPrice: 120, discountType: "amount", discountVal: 0, tax: 0
+};
+
+/* Time assumptions — editable in Settings, applied only in square-footage mode
+   (manual hours already reflect the owner's estimate, so multiplying would double-count). */
+const DEFAULT_SETTINGS = {
+  pace: { quick: 800, standard: 600, thorough: 450 },   // sq ft per cleaner-hour — customizable starting estimates
+  serviceMult: { "Standard Clean": 1.0, "Deep Clean": 1.75, "Move-In / Move-Out": 2.0, "Recurring Clean": 0.9 },
+  condMult: { "Light": 0.9, "Average": 1.0, "Heavy": 1.3 },
+  quoteNote: "This estimate is valid for 30 days. Final price may change if the job is larger than described. Thank you for the opportunity to earn your business."
+};
+let settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+
+let estimateMode = "sqft";   // "sqft" | "manual"
+
+/* Default add-ons. price = what the customer pays, cost = what it costs the owner */
+const DEFAULT_ADDONS = [
+  { id: "fridge",    name: "Inside refrigerator", on: true,  price: 35, cost: 5 },
+  { id: "oven",      name: "Inside oven",         on: false, price: 40, cost: 6 },
+  { id: "windows",   name: "Interior windows",    on: true,  price: 45, cost: 5 },
+  { id: "baseboards",name: "Baseboards",          on: false, price: 30, cost: 3 },
+  { id: "laundry",   name: "Laundry",             on: false, price: 25, cost: 4 }
+];
+
+let addons = [];
+let logoData = null;      // dataURL string or null
+let lastPriceText = "";   // for the change-flash animation
+
+/* ---------- tiny helpers ---------- */
+const $ = id => document.getElementById(id);
+const num = v => { const n = parseFloat(v); return isFinite(n) && n > 0 ? n : (isFinite(n) ? n : 0); };
+const pos = v => Math.max(0, num(v));                     // never negative
+const money = n => (isFinite(n) ? n : 0).toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const money0 = n => "$" + Math.round(isFinite(n) ? n : 0).toLocaleString("en-US");
+const pct = n => (isFinite(n) ? n : 0).toFixed(1) + "%";
+
+/* ---------- gather every input into one object ---------- */
+function readState() {
+  return {
+    bizName: $("bizName").value.trim(),
+    bizContact: $("bizContact").value.trim(),
+    customer: $("customer").value.trim(),
+    service: $("service").value,
+    condition: $("condition").value,
+    sqft: pos($("sqft").value), beds: pos($("beds").value), baths: pos($("baths").value),
+    estimateMode: estimateMode,
+    speedPreset: $("speedPreset").value,
+    productivity: $("speedPreset").value === "custom" ? pos($("productivity").value) : (settings.pace[$("speedPreset").value] || settings.pace.standard),
+    cleaners: pos($("cleaners").value),
+    hourly: pos($("hourly").value),
+    hours: pos($("hours").value),
+    supplies: pos($("supplies").value),
+    travel: pos($("travel").value),
+    overhead: pos($("overhead").value),
+    fee: Math.min(100, pos($("fee").value)),
+    margin: Math.min(95, pos($("margin").value)),
+    minPrice: pos($("minPrice").value),
+    discountType: $("discountType").value,
+    discountVal: pos($("discountVal").value),
+    tax: Math.min(100, pos($("tax").value))
+  };
+}
+
+/* ================================================================
+   THE PRICING ENGINE
+   ----------------------------------------------------------------
+   serviceCost = labor + supplies + travel + overhead
+   servicePrice = serviceCost / (1 - margin)         (cost-plus markup)
+   price = round(servicePrice) + sum(add-on charges)
+   -> apply discount -> enforce minimum
+   tax is added on top and passes through (not profit)
+   card fee is charged on the full amount the customer pays, and
+   comes out of the owner's pocket (a real cost that eats profit)
+   ================================================================ */
+function compute(s) {
+  const enabled = addons.filter(a => a.on);
+  const addonCharge = enabled.reduce((t, a) => t + pos(a.price), 0);
+  const addonCost   = enabled.reduce((t, a) => t + pos(a.cost), 0);
+
+  /* Hours + labor, two ways to get there:
+     - sqft mode: personHours = (sqft / speed) scaled by service + condition.
+       Labor cost is total person-hours x pay. More cleaners just finishes the
+       same work faster, so it lowers on-site time, not labor cost.
+     - manual mode: the owner's entered hours are on-site duration, so
+       labor = cleaners x pay x hours (the original behavior). */
+  let personHours, onSiteHours, laborCost;
+  if (s.estimateMode === "sqft") {
+    const base = s.productivity > 0 ? s.sqft / s.productivity : 0;
+    personHours = base * (settings.serviceMult[s.service] || 1) * (settings.condMult[s.condition] || 1);
+    laborCost = personHours * s.hourly;
+    onSiteHours = s.cleaners > 0 ? personHours / s.cleaners : personHours;
+  } else {
+    onSiteHours = s.hours;
+    personHours = s.cleaners > 0 ? s.hours * s.cleaners : s.hours;
+    laborCost = s.cleaners * s.hourly * s.hours;
+  }
+
+  const serviceCost = laborCost + s.supplies + s.travel + s.overhead;
+
+  const marginFrac = Math.min(0.95, s.margin / 100);
+  const feeFrac = (s.fee / 100) * (1 + s.tax / 100);        // processor's cut per dollar of price (fee is charged on the taxed total)
+  const denom = Math.max(0.05, 1 - marginFrac - feeFrac);   // gross the price up so the target margin survives the card fee
+  const servicePrice = Math.round(serviceCost / denom);     // whole-dollar service line
+
+  const listPrice = servicePrice + addonCharge;                    // before discount
+
+  const discount = s.discountType === "percent"
+    ? listPrice * (s.discountVal / 100)
+    : s.discountVal;
+  let net = Math.max(0, listPrice - discount);
+  const discountApplied = Math.min(discount, listPrice);
+
+  let bumpedToMin = false;
+  if (net < s.minPrice) { net = s.minPrice; bumpedToMin = true; }
+
+  const taxAmt = net * (s.tax / 100);
+  const total  = net + taxAmt;
+  const feeAmt = total * (s.fee / 100);
+
+  const totalCost = serviceCost + addonCost + feeAmt;
+  const profit = net - totalCost;               // tax passes through, so revenue kept = net
+  const margin = net > 0 ? (profit / net) * 100 : 0;
+  const perHour = personHours > 0 ? net / personHours : null;   // revenue per cleaner-hour of work
+
+  return {
+    enabled, servicePrice, addonCharge, listPrice,
+    discountApplied, net, taxAmt, total, feeAmt,
+    serviceCost, addonCost, totalCost, profit, margin, perHour, bumpedToMin,
+    personHours, onSiteHours,
+    marginImpossible: s.margin >= 95
+  };
+}
+
+/* ---------- run calc + paint the screen ---------- */
+function calc() {
+  const s = readState();
+  const r = compute(s);
+
+  const priceText = money0(r.net);
+  const priceEl = $("outPrice");
+  if (priceText !== lastPriceText) {
+    priceEl.textContent = priceText;
+    priceEl.classList.remove("price-flash"); void priceEl.offsetWidth; priceEl.classList.add("price-flash");
+    lastPriceText = priceText;
+  }
+  $("outMarginChip").textContent = pct(r.margin);
+
+  $("stCost").textContent = money(r.totalCost);
+  const profEl = $("stProfit");
+  profEl.textContent = money(r.profit);
+  profEl.className = "st__v " + (r.profit >= 0 ? "v--pos" : "v--neg");
+  $("stPerHour").textContent = r.perHour === null ? "—" : money(r.perHour);
+
+  // live hours readout (square-footage mode)
+  if (estimateMode === "sqft") {
+    let html;
+    if (s.sqft <= 0) html = `<span class="muted">Enter square footage above to estimate the time.</span>`;
+    else if (s.productivity <= 0) html = `<span class="muted">Enter a cleaning speed to estimate the time.</span>`;
+    else html = `Estimated <b>${r.onSiteHours.toFixed(1)} hrs</b> on site`
+      + (s.cleaners > 1 ? ` with ${s.cleaners} cleaners` : ``)
+      + ` <span class="muted">· ${r.personHours.toFixed(1)} cleaner-hours · ${Math.round(s.productivity)} sq ft/hr</span>`;
+    $("hoursReadout").innerHTML = html;
+
+    const odd = s.speedPreset === "custom" && s.productivity > 0 && (s.productivity < 150 || s.productivity > 2000);
+    const hint = $("speedHint");
+    if (odd) { hint.textContent = "That cleaning pace is outside the tool's typical starting range. Double-check that it matches your real jobs."; hint.style.color = "var(--warning)"; }
+    else { hint.textContent = "Deep cleans and heavy jobs add time on top of this automatically."; hint.style.color = ""; }
+  }
+
+  toggleNote("noteLoss", r.profit < 0);
+  toggleNote("noteLabor", s.hourly <= 0 && r.personHours > 0);
+  if (r.bumpedToMin) { $("noteMinText").textContent = "Bumped up to your " + money0(s.minPrice) + " minimum."; toggleNote("noteMin", true); }
+  else toggleNote("noteMin", false);
+
+  let thin = "";
+  if (r.marginImpossible) thin = "Margin is capped at 95%. Anything higher makes the price run away.";
+  else if (r.profit >= 0 && r.margin < 15 && r.net > 0) thin = "Thin margin. Most cleaners aim for 30% or more.";
+  else if (r.profit >= 0 && r.enabled.length && r.margin > s.margin + 1) thin = "Your add-ons push the real margin above your " + pct(s.margin) + " service target. That extra is upsell profit.";
+  if (thin) { $("noteThinText").textContent = thin; toggleNote("noteThin", true); } else toggleNote("noteThin", false);
+
+  save(s);
+}
+function toggleNote(id, on) { $(id).classList.toggle("show", on); }
+
+/* ================================================================
+   ADD-ONS
+   ================================================================ */
+function renderAddons() {
+  const list = $("addonList");
+  list.innerHTML = "";
+  addons.forEach((a, i) => {
+    const row = document.createElement("div");
+    row.className = "addon" + (a.on ? "" : " off");
+    row.innerHTML = `
+      <div class="addon__name">
+        <label class="switch">
+          <input type="checkbox" ${a.on ? "checked" : ""} data-i="${i}" data-k="on">
+          <span class="track"></span>
+        </label>
+        <span title="${escapeHtml(a.name)}">${escapeHtml(a.name)}</span>
+      </div>
+      <div class="inline"><input class="mini" type="number" inputmode="decimal" min="0" value="${a.price}" data-i="${i}" data-k="price" aria-label="charge for ${escapeHtml(a.name)}"></div>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <input class="mini" type="number" inputmode="decimal" min="0" value="${a.cost}" data-i="${i}" data-k="cost" aria-label="your cost for ${escapeHtml(a.name)}" style="flex:1;">
+        ${a.custom ? `<button class="addon__del" data-del="${i}" title="Remove" aria-label="Remove ${escapeHtml(a.name)}">✕</button>` : ""}
+      </div>`;
+    list.appendChild(row);
+  });
+
+  list.querySelectorAll("input").forEach(inp => {
+    const ev = inp.type === "checkbox" ? "change" : "input";
+    inp.addEventListener(ev, e => {
+      const i = +e.target.dataset.i, k = e.target.dataset.k;
+      addons[i][k] = k === "on" ? e.target.checked : pos(e.target.value);
+      if (k === "on") renderAddons();
+      calc();
+    });
+  });
+  list.querySelectorAll("[data-del]").forEach(b => {
+    b.addEventListener("click", e => { addons.splice(+e.target.dataset.del, 1); renderAddons(); calc(); });
+  });
+}
+
+function openCustomAdd() {
+  $("customName").value = ""; $("customPrice").value = ""; $("customCost").value = "";
+  $("customAdd").classList.add("show");
+  $("addAddon").style.display = "none";
+  $("customName").focus();
+}
+function closeCustomAdd() {
+  $("customAdd").classList.remove("show");
+  $("addAddon").style.display = "";
+}
+function saveCustomAdd() {
+  const name = $("customName").value.trim();
+  if (!name) { $("customName").focus(); return; }
+  addons.push({
+    id: "c" + Date.now(),
+    name: name.slice(0, 40),
+    on: true,
+    price: pos($("customPrice").value),
+    cost: pos($("customCost").value),
+    custom: true
+  });
+  closeCustomAdd();
+  renderAddons(); calc();
+}
+
+/* ================================================================
+   CUSTOMER QUOTE (buyer's brand only — no internal numbers)
+   ================================================================ */
+function buildQuote() {
+  const s = readState();
+  const r = compute(s);
+
+  const bizName = s.bizName || "Your Business Name";
+  const dateStr = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+  const scopeBits = [];
+  if (s.sqft) scopeBits.push(s.sqft.toLocaleString() + " sq ft");
+  if (s.beds) scopeBits.push(s.beds + " bd");
+  if (s.baths) scopeBits.push(s.baths + " ba");
+  const scope = scopeBits.join(" · ");
+
+  let rows = `
+    <tr>
+      <td><strong>${escapeHtml(s.service)}</strong><div class="desc">${escapeHtml(scope)}${s.condition ? " · " + escapeHtml(s.condition.toLowerCase()) + " condition" : ""}</div></td>
+      <td class="r">${money(r.servicePrice)}</td>
+    </tr>`;
+  r.enabled.forEach(a => {
+    rows += `<tr><td>${escapeHtml(a.name)}</td><td class="r">${money(pos(a.price))}</td></tr>`;
+  });
+
+  let totals = `<div class="row"><span class="k">Subtotal</span><span class="v">${money(r.listPrice)}</span></div>`;
+  if (r.discountApplied > 0) totals += `<div class="row"><span class="k">Discount</span><span class="v">− ${money(r.discountApplied)}</span></div>`;
+  if (s.tax > 0) totals += `<div class="row"><span class="k">Sales tax (${s.tax}%)</span><span class="v">${money(r.taxAmt)}</span></div>`;
+  totals += `<div class="row total"><span class="k">Total</span><span class="v">${money(r.total)}</span></div>`;
+
+  const logoHtml = logoData ? `<img src="${logoData}" alt="logo">` : "";
+  const contactHtml = s.bizContact ? `<div class="contact">${escapeHtml(s.bizContact)}</div>` : "";
+  const toHtml = s.customer
+    ? `<div class="quote__to"><div class="lbl">Prepared for</div><div class="who">${escapeHtml(s.customer)}</div><div class="scope">${escapeHtml(scope)}</div></div>`
+    : `<div class="quote__to"><div class="lbl">Prepared for</div><div class="scope">${escapeHtml(scope)}</div></div>`;
+
+  $("quote").innerHTML = `
+    <div class="quote__head">
+      <div class="quote__biz">${logoHtml}<div class="name">${escapeHtml(bizName)}</div>${contactHtml}</div>
+      <div class="quote__meta"><div class="tag">Estimate</div><div class="date">${dateStr}</div></div>
+    </div>
+    ${toHtml}
+    <table>
+      <thead><tr><th>Service</th><th class="r">Price</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="quote__totals">${totals}</div>
+    ${settings.quoteNote && settings.quoteNote.trim() ? `<div class="quote__note">${escapeHtml(settings.quoteNote)}</div>` : ""}`;
+}
+
+function openQuote() { buildQuote(); $("overlay").classList.add("show"); document.body.style.overflow = "hidden"; }
+function closeQuote() { $("overlay").classList.remove("show"); document.body.style.overflow = ""; }
+
+/* ================================================================
+   PERSISTENCE  (local download tool — data stays on device)
+   ================================================================ */
+function save(s) {
+  try {
+    localStorage.setItem(LS_DATA, JSON.stringify({ fields: s, addons, logoData, settings }));
+  } catch (e) { /* quota — keep running without saving */ }
+}
+function load() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(LS_DATA)); } catch (e) {}
+  if (saved && saved.settings && typeof saved.settings === "object") {
+    settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+    if (saved.settings.pace) Object.assign(settings.pace, saved.settings.pace);
+    if (saved.settings.serviceMult) Object.assign(settings.serviceMult, saved.settings.serviceMult);
+    if (saved.settings.condMult) Object.assign(settings.condMult, saved.settings.condMult);
+    if (typeof saved.settings.quoteNote === "string") settings.quoteNote = saved.settings.quoteNote;
+    settings.serviceMult["Standard Clean"] = 1.0;
+    settings.condMult["Average"] = 1.0;
+  }
+  if (saved && saved.fields) {
+    applyFields(saved.fields);
+    addons = Array.isArray(saved.addons) && saved.addons.length ? saved.addons : DEFAULT_ADDONS.map(a => ({ ...a }));
+    logoData = saved.logoData || null;
+  } else {
+    applyFields(SAMPLE);
+    addons = DEFAULT_ADDONS.map(a => ({ ...a }));
+  }
+  if (logoData) showLogo(logoData);
+}
+function applyFields(f) {
+  ["bizName","bizContact","customer","service","condition","sqft","beds","baths",
+   "speedPreset","productivity","cleaners","hourly","hours","supplies","travel","overhead","fee","margin","minPrice",
+   "discountType","discountVal","tax"].forEach(k => { if ($(k) && f[k] !== undefined) $(k).value = f[k]; });
+  if (!["quick","standard","thorough","custom"].includes($("speedPreset").value)) $("speedPreset").value = "standard";  // stale saved value → default
+  if (f.estimateMode === "manual" || f.estimateMode === "sqft") estimateMode = f.estimateMode;
+}
+
+function applyModeUI() {
+  document.querySelectorAll("#modeSeg .seg__btn").forEach(b => b.classList.toggle("active", b.dataset.mode === estimateMode));
+  $("sqftEst").classList.toggle("hidden", estimateMode !== "sqft");
+  $("manualHours").classList.toggle("hidden", estimateMode !== "manual");
+}
+function applySpeedUI() {
+  $("customSpeed").classList.toggle("hidden", $("speedPreset").value !== "custom");
+}
+
+/* ---------- settings (editable assumptions) ---------- */
+function readSettings() {
+  const val = (id, fallback) => { const v = parseFloat($(id).value); return isFinite(v) && v > 0 ? v : fallback; };
+  settings.pace.quick    = Math.round(val("setPaceQuick",    DEFAULT_SETTINGS.pace.quick));
+  settings.pace.standard = Math.round(val("setPaceStandard", DEFAULT_SETTINGS.pace.standard));
+  settings.pace.thorough = Math.round(val("setPaceThorough", DEFAULT_SETTINGS.pace.thorough));
+  settings.serviceMult["Deep Clean"]         = val("setDeep",      DEFAULT_SETTINGS.serviceMult["Deep Clean"]);
+  settings.serviceMult["Move-In / Move-Out"] = val("setMoveInOut", DEFAULT_SETTINGS.serviceMult["Move-In / Move-Out"]);
+  settings.serviceMult["Recurring Clean"]    = val("setRecurring", DEFAULT_SETTINGS.serviceMult["Recurring Clean"]);
+  settings.condMult["Light"] = val("setLight", DEFAULT_SETTINGS.condMult["Light"]);
+  settings.condMult["Heavy"] = val("setHeavy", DEFAULT_SETTINGS.condMult["Heavy"]);
+  settings.serviceMult["Standard Clean"] = 1.0;
+  settings.condMult["Average"] = 1.0;
+  settings.quoteNote = $("setQuoteNote").value;
+}
+function applySettings() {
+  $("setPaceQuick").value = settings.pace.quick;
+  $("setPaceStandard").value = settings.pace.standard;
+  $("setPaceThorough").value = settings.pace.thorough;
+  $("setDeep").value = settings.serviceMult["Deep Clean"];
+  $("setMoveInOut").value = settings.serviceMult["Move-In / Move-Out"];
+  $("setRecurring").value = settings.serviceMult["Recurring Clean"];
+  $("setLight").value = settings.condMult["Light"];
+  $("setHeavy").value = settings.condMult["Heavy"];
+  $("setQuoteNote").value = settings.quoteNote != null ? settings.quoteNote : "";
+  updatePaceLabels();
+}
+function updatePaceLabels() {
+  const set = (key, base) => { const o = document.querySelector(`#speedPreset option[value="${key}"]`); if (o) o.textContent = `${base} · ${settings.pace[key]} sq ft/hr`; };
+  set("quick", "Quick — light touch");
+  set("standard", "Standard pace");
+  set("thorough", "Thorough — detailed");
+}
+function openSettings() { $("settingsOverlay").classList.add("show"); document.body.style.overflow = "hidden"; }
+function closeSettings() { $("settingsOverlay").classList.remove("show"); document.body.style.overflow = ""; }
+
+function resetAll() {
+  if (!confirmReset()) return;
+  try { localStorage.removeItem(LS_DATA); localStorage.removeItem(LS_SEEN); } catch (e) {}
+  logoData = null; hideLogo();
+  applyFields(SAMPLE);
+  addons = DEFAULT_ADDONS.map(a => ({ ...a }));
+  settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+  applySettings();
+  applyModeUI();
+  applySpeedUI();
+  renderAddons(); calc();
+  $("banner").classList.add("show");
+}
+function confirmReset() { return window.confirm("Clear all inputs and start over with the sample job?"); }
+
+/* ---------- logo ---------- */
+function showLogo(data) { $("logoImg").src = data; $("logoPreview").classList.add("show"); }
+function hideLogo() { $("logoPreview").classList.remove("show"); $("logoInput").value = ""; }
+
+/* ---------- safety ---------- */
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+
+/* ================================================================
+   INIT
+   ================================================================ */
+function init() {
+  $("appName").textContent = APP_NAME;
+  load();
+  applySettings();
+  applyModeUI();
+  applySpeedUI();
+  renderAddons();
+
+  document.querySelectorAll(".card input, .card select").forEach(el => {
+    const ev = (el.tagName === "SELECT") ? "change" : "input";
+    el.addEventListener(ev, () => { if (el.id !== "logoInput") calc(); });
+    el.addEventListener("input", dismissBannerOnce);
+  });
+
+  $("speedPreset").addEventListener("change", () => { applySpeedUI(); calc(); });
+
+  // settings (editable assumptions)
+  ["setPaceQuick","setPaceStandard","setPaceThorough","setDeep","setMoveInOut","setRecurring","setLight","setHeavy","setQuoteNote"].forEach(id => {
+    $(id).addEventListener("input", () => { readSettings(); updatePaceLabels(); calc(); });
+  });
+  $("settingsBtn").addEventListener("click", openSettings);
+  $("closeSettings").addEventListener("click", closeSettings);
+  $("settingsOverlay").addEventListener("click", e => { if (e.target === $("settingsOverlay")) closeSettings(); });
+  $("resetSettings").addEventListener("click", () => { settings = JSON.parse(JSON.stringify(DEFAULT_SETTINGS)); applySettings(); calc(); });
+
+  // hours-estimation mode toggle
+  document.querySelectorAll("#modeSeg .seg__btn").forEach(b => {
+    b.addEventListener("click", () => { estimateMode = b.dataset.mode; applyModeUI(); dismissBannerOnce(); calc(); });
+  });
+
+  // logo upload — downscale to a small PNG so it always saves and comes back
+  $("logoInput").addEventListener("change", e => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 360;
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * (maxW / w)); w = maxW; }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        logoData = canvas.toDataURL("image/png");
+        showLogo(logoData); calc();
+      };
+      img.onerror = () => { logoData = ev.target.result; showLogo(logoData); calc(); };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  $("logoRemove").addEventListener("click", () => { logoData = null; hideLogo(); calc(); });
+
+  $("addAddon").addEventListener("click", openCustomAdd);
+  $("customSave").addEventListener("click", saveCustomAdd);
+  $("customCancel").addEventListener("click", closeCustomAdd);
+  ["customName","customPrice","customCost"].forEach(id => {
+    $(id).addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); saveCustomAdd(); } });
+  });
+  $("quoteBtn").addEventListener("click", openQuote);
+  $("closeQuote").addEventListener("click", closeQuote);
+  $("printQuote").addEventListener("click", () => {
+    document.body.classList.add("print-quote");
+    window.print();
+  });
+  window.addEventListener("afterprint", () => document.body.classList.remove("print-quote"));
+  $("overlay").addEventListener("click", e => { if (e.target === $("overlay")) closeQuote(); });
+  $("resetBtn").addEventListener("click", resetAll);
+  $("bannerX").addEventListener("click", dismissBanner);
+  document.addEventListener("keydown", e => { if (e.key === "Escape") { closeQuote(); closeSettings(); } });
+
+  let seen = null; try { seen = localStorage.getItem(LS_SEEN); } catch (e) {}
+  if (!seen) $("banner").classList.add("show");
+
+  calc();
+}
+
+let bannerDismissed = false;
+function dismissBanner() { $("banner").classList.remove("show"); try { localStorage.setItem(LS_SEEN, "1"); } catch (e) {} }
+function dismissBannerOnce() { if (!bannerDismissed) { bannerDismissed = true; dismissBanner(); } }
+
+window.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
