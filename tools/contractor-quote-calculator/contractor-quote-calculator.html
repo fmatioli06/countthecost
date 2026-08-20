@@ -63,6 +63,9 @@ input,select,textarea{font-family:inherit}
 .lockup{display:flex;align-items:center;gap:9px}
 .lockup__mark{height:24px;width:auto;flex:none}
 .tagline{font-size:.62rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--slate-light);text-align:right}
+.brandbar__right{display:flex;align-items:center;gap:12px}
+.gear{width:38px;height:38px;border-radius:9px;border:1px solid var(--border-strong-dark);background:transparent;color:var(--white);cursor:pointer;display:grid;place-items:center;flex:none;transition:background .15s ease}
+.gear:hover{background:var(--surface-dark)}
 
 /* Builder / client-quote switch, on the light surface */
 .viewtoggle{display:inline-flex;background:var(--white);border:1px solid var(--line-light);border-radius:var(--r-input);padding:3px;gap:2px;margin-bottom:16px}
@@ -274,7 +277,12 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
           </g>
         </svg>
       </div>
-      <span class="tagline">Know your numbers before you build</span>
+      <div class="brandbar__right">
+        <span class="tagline">Know your numbers before you build</span>
+        <button class="gear" id="setupBtn" aria-label="Jump to your setup" title="Your setup">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -484,9 +492,10 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
             <div class="seg" id="seg-detail">
               <button data-detail="math" class="is-active" onclick="setDetail('math')">Show the math</button>
               <button data-detail="flat" onclick="setDetail('flat')">Flat price</button>
+              <button data-detail="total" onclick="setDetail('total')">One price</button>
             </div>
           </div>
-          <div class="qopt">
+          <div class="qopt" id="matOpt">
             <span class="qlab">Materials</span>
             <div class="seg" id="seg-materials">
               <button data-mat="separate" class="is-active" onclick="setMatMode('separate')">Separate line</button>
@@ -709,9 +718,10 @@ function renderOwner(r){
 /* ---- Render client quote ---- */
 function renderQuote(r){
   const s = state;
-  const flat = s.detail === 'flat';
+  const single = s.detail === 'total';   // one price, work shown only as scope
+  const flat = s.detail === 'flat' || single;
   const folded = s.matMode === 'folded';
-  const anyMaterials = r.matShown > 0.005;
+  const anyMaterials = !single && r.matShown > 0.005;
 
   // Header
   let html = '';
@@ -757,9 +767,9 @@ function renderQuote(r){
   const matRows   = !flat && !folded && anyMaterials;  // materials get their own rows below
 
   html += '<table class="qtable"><thead><tr>';
-  html += '<th>Task</th>';
+  html += '<th>'+(single ? 'Scope of work' : 'Task')+'</th>';
   if(splitCols) html += '<th class="num">Labor</th><th class="num">Materials</th>';
-  html += '<th class="num">Amount</th>';
+  if(!single) html += '<th class="num">Amount</th>';
   html += '</tr></thead><tbody>';
 
   s.lines.forEach((li, i)=>{
@@ -777,8 +787,7 @@ function renderQuote(r){
       html += '<td class="num">'+money(scLabor(pl))+'</td>';
       html += '<td class="num">'+(pl.charged>0 ? money(scMat(pl)) : '—')+'</td>';
     }
-    // Amount is the whole task, except in matRows mode where materials sit below
-    html += '<td class="num">'+money(matRows ? scLine(pl) - scMat(pl) : scLine(pl))+'</td>';
+    if(!single) html += '<td class="num">'+money(matRows ? scLine(pl) - scMat(pl) : scLine(pl))+'</td>';
     html += '</tr>';
   });
 
@@ -793,16 +802,17 @@ function renderQuote(r){
 
   html += '</tbody></table>';
 
-  // Totals
+  // Totals. "One price" collapses everything into a single number; the other
+  // modes break out subtotal, trip and tax so the client can add up the rows.
   html += '<div class="qtotals">';
-  const showBreak = r.trip>0 || r.tax>0 || (num(s.deposit)>0);
+  const showBreak = !single && (r.trip>0 || r.tax>0 || (num(s.deposit)>0));
   if(showBreak){
     // Subtotal equals the sum of the task rows above (margin already inside them).
     html += row('Subtotal', money(r.withMargin - r.trip));
     if(r.trip>0) html += row('Trip charge', money(r.trip));
     if(r.tax>0)  html += row('Tax', money(r.tax));
   }
-  html += '<div class="qt-row total"><span>Total</span><span class="amt">'+money(r.total)+'</span></div>';
+  html += '<div class="qt-row total"><span>'+(single ? 'Project total' : 'Total')+'</span><span class="amt">'+money(r.total)+'</span></div>';
   const depPct = Math.min(100, Math.max(0, num(s.deposit)));   // matches the cap calc() puts on the amount
   if(depPct>0) html += '<div class="qt-row deposit"><span>Deposit due ('+trimPct(depPct)+'%)</span><span class="amt">'+money(r.deposit)+'</span></div>';
   html += '</div>';
@@ -1018,7 +1028,12 @@ function setTaxMode(mode){
 function setDetail(mode){
   state.detail = mode;
   document.querySelectorAll('#seg-detail button').forEach(b=>b.classList.toggle('is-active', b.dataset.detail===mode));
+  applyDetailUI();
   refresh();
+}
+function applyDetailUI(){
+  const matOpt = document.getElementById('matOpt');
+  if(matOpt) matOpt.style.display = state.detail==='math' ? '' : 'none';   // separate/folded only matters when the math is shown
 }
 function setMatMode(mode){
   state.matMode = mode;
@@ -1038,6 +1053,12 @@ function setView(v){
 }
 
 /* ---- Setup collapse ---- */
+function openSetup(){
+  setView('build');
+  collapseSetup(false);
+  const card = document.getElementById('setup-card');
+  if(card) card.scrollIntoView({behavior:'smooth', block:'start'});
+}
 function toggleSetup(){
   const card = document.getElementById('setup-card');
   const collapsed = card.classList.toggle('card--collapsed');
@@ -1087,6 +1108,7 @@ function hydrateForm(){
   document.querySelectorAll('#seg-tax button').forEach(b=>b.classList.toggle('is-active', b.dataset.tax===state.taxMode));
   document.querySelectorAll('#seg-detail button').forEach(b=>b.classList.toggle('is-active', b.dataset.detail===state.detail));
   document.querySelectorAll('#seg-materials button').forEach(b=>b.classList.toggle('is-active', b.dataset.mat===state.matMode));
+  applyDetailUI();
 }
 
 function shake(el){ el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); setTimeout(()=>el.classList.remove('shake'),350); }
@@ -1121,6 +1143,7 @@ function init(){
   hydrateForm();
   bindInputs();
   bindLineDelegation();
+  document.getElementById('setupBtn').addEventListener('click', openSetup);
   renderLines();
   refresh();
   if(!saved && !seen) showBanner();
