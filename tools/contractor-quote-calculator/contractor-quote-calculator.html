@@ -294,14 +294,14 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
     </div>
 
     <div class="viewtoggle no-print" role="tablist">
-      <button id="tab-build" class="is-active" onclick="setView('build')">Builder</button>
-      <button id="tab-quote" onclick="setView('quote')">Client quote</button>
+      <button id="tab-build" type="button" class="is-active">Builder</button>
+      <button id="tab-quote" type="button">Client quote</button>
     </div>
 
     <!-- Onboarding banner -->
     <div class="banner no-print" id="banner">
       <span><b>Sample quote loaded.</b> Replace the numbers with your own job.</span>
-      <button class="banner__x" onclick="dismissBanner()" aria-label="Dismiss">&times;</button>
+      <button class="banner__x" id="bannerX" type="button" aria-label="Dismiss">&times;</button>
     </div>
 
     <!-- ============ BUILDER VIEW ============ -->
@@ -319,7 +319,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
           <div class="stat"><div class="stat__k">Total hours</div><div class="stat__v" id="statHours">0</div></div>
         </div>
         <div class="flag" id="floorFlag"></div>
-        <button class="btn btn--primary result__cta no-print" onclick="setView('quote')">Generate customer quote &rarr;</button>
+        <button class="btn btn--primary result__cta no-print" id="ctaQuote" type="button">Generate customer quote &rarr;</button>
       </section>
 
       <!-- Setup -->
@@ -333,7 +333,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
               <div class="setup-summary" id="setup-summary"></div>
             </div>
           </div>
-          <button class="collapse-btn" id="setup-toggle" onclick="toggleSetup()">Hide</button>
+          <button class="collapse-btn" id="setup-toggle" type="button">Hide</button>
         </div>
         <div class="card__body">
           <div class="grid grid--2">
@@ -352,8 +352,8 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
             <div class="field">
               <label>Operator type</label>
               <div class="seg" id="seg-operator">
-                <button data-op="solo" class="is-active" onclick="setOperator('solo')">Solo</button>
-                <button data-op="crew" onclick="setOperator('crew')">Crew</button>
+                <button data-op="solo" type="button" class="is-active">Solo</button>
+                <button data-op="crew" type="button">Crew</button>
               </div>
             </div>
             <div class="field" id="rate-field">
@@ -415,9 +415,9 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
             <div class="field">
               <label>Tax applies to</label>
               <div class="seg" id="seg-tax">
-                <button data-tax="materials" class="is-active" onclick="setTaxMode('materials')">Materials</button>
-                <button data-tax="everything" onclick="setTaxMode('everything')">Everything</button>
-                <button data-tax="none" onclick="setTaxMode('none')">None</button>
+                <button data-tax="materials" type="button" class="is-active">Materials</button>
+                <button data-tax="everything" type="button">Everything</button>
+                <button data-tax="none" type="button">None</button>
               </div>
             </div>
             <div class="field">
@@ -473,12 +473,12 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
         <div class="card__head"><div class="htext"><span class="n">3</span><div><h2>Tasks</h2><div class="sub">One line per task. Add as many as the job needs.</div></div></div></div>
         <div class="card__body">
           <div id="lines"></div>
-          <button class="addline" onclick="addLine()">+ Add a task</button>
+          <button class="addline" id="addTaskBtn" type="button">+ Add a task</button>
         </div>
       </section>
 
       <div class="btn-row no-print" style="margin-top:4px">
-        <button class="btn btn--ghost" onclick="askReset()">Start over</button>
+        <button class="btn btn--ghost" id="resetBtn" type="button">Start over</button>
       </div>
 
     </div>
@@ -490,16 +490,16 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
           <div class="qopt">
             <span class="qlab">Detail level</span>
             <div class="seg" id="seg-detail">
-              <button data-detail="math" class="is-active" onclick="setDetail('math')">Show the math</button>
-              <button data-detail="flat" onclick="setDetail('flat')">Flat price</button>
-              <button data-detail="total" onclick="setDetail('total')">One price</button>
+              <button data-detail="math" type="button" class="is-active">Show the math</button>
+              <button data-detail="flat" type="button">Flat price</button>
+              <button data-detail="total" type="button">One price</button>
             </div>
           </div>
           <div class="qopt" id="matOpt">
             <span class="qlab">Materials</span>
             <div class="seg" id="seg-materials">
-              <button data-mat="separate" class="is-active" onclick="setMatMode('separate')">Separate line</button>
-              <button data-mat="folded" onclick="setMatMode('folded')">Folded in</button>
+              <button data-mat="separate" type="button" class="is-active">Separate line</button>
+              <button data-mat="folded" type="button">Folded in</button>
             </div>
           </div>
         </div>
@@ -509,8 +509,8 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
       <div class="quote" id="quoteDoc"></div>
 
       <div class="btn-row no-print" style="margin-top:16px">
-        <button class="btn btn--primary" onclick="window.print()">Print / Save PDF</button>
-        <button class="btn btn--ghost" onclick="setView('build')">Back to builder</button>
+        <button class="btn btn--primary" id="printBtn" type="button">Print / Save PDF</button>
+        <button class="btn btn--ghost" id="backBtn" type="button">Back to builder</button>
       </div>
     </div>
 
@@ -525,8 +525,8 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
     <h3>Start over</h3>
     <p>This clears the current job and your saved setup, then loads a fresh sample. Can't be undone.</p>
     <div class="btn-row">
-      <button class="btn btn--ghost" onclick="closeReset()">Keep my work</button>
-      <button class="btn btn--primary" onclick="doReset()">Clear it</button>
+      <button class="btn btn--ghost" id="resetKeep" type="button">Keep my work</button>
+      <button class="btn btn--primary" id="resetClear" type="button">Clear it</button>
     </div>
   </div>
 </div>
@@ -866,9 +866,9 @@ function lineHTML(li,i,crew){
       <span class="lineitem__num">Task ${i+1}</span>
       <span class="lineitem__amt" data-amt="${i}"></span>
       <div class="lineitem__actions">
-        <button class="icon-btn" title="Move up" onclick="moveLine(${i},-1)" ${i===0?'disabled':''}>&uarr;</button>
-        <button class="icon-btn" title="Move down" onclick="moveLine(${i},1)" ${i===state.lines.length-1?'disabled':''}>&darr;</button>
-        <button class="icon-btn del" title="Remove" onclick="removeLine(${i})" ${only?'disabled':''}>&times;</button>
+        <button class="icon-btn" type="button" title="Move up" data-move="-1" data-i="${i}" ${i===0?'disabled':''}>&uarr;</button>
+        <button class="icon-btn" type="button" title="Move down" data-move="1" data-i="${i}" ${i===state.lines.length-1?'disabled':''}>&darr;</button>
+        <button class="icon-btn del" type="button" title="Remove" data-del data-i="${i}" ${only?'disabled':''}>&times;</button>
       </div>
     </div>
     <div class="field lineitem__desc">
@@ -965,6 +965,12 @@ function bindInputs(){
 /* ---- Line input handling via delegation ---- */
 function bindLineDelegation(){
   const wrap = document.getElementById('lines');
+  wrap.addEventListener('click', e=>{
+    const mv = e.target.closest('[data-move]');
+    if(mv){ moveLine(+mv.dataset.i, +mv.dataset.move); return; }
+    const del = e.target.closest('[data-del]');
+    if(del){ removeLine(+del.dataset.i); return; }
+  });
   wrap.addEventListener('input', e=>{
     const el = e.target;
     if(!el.dataset.l) return;
@@ -1128,6 +1134,30 @@ function fitTotal(){
 let _fitTimer;
 window.addEventListener('resize', ()=>{ clearTimeout(_fitTimer); _fitTimer = setTimeout(fitTotal, 120); });
 
+/* ---- Wire every button once (no inline handlers, matching the cleaning build) ---- */
+function wireButtons(){
+  const on = (id, fn) => { const el = document.getElementById(id); if(el) el.addEventListener('click', fn); };
+  const seg = (sel, key, fn) => document.querySelectorAll(sel+' button').forEach(b => b.addEventListener('click', () => fn(b.dataset[key])));
+
+  seg('#seg-operator', 'op', setOperator);
+  seg('#seg-tax', 'tax', setTaxMode);
+  seg('#seg-detail', 'detail', setDetail);
+  seg('#seg-materials', 'mat', setMatMode);
+
+  on('tab-build', () => setView('build'));
+  on('tab-quote', () => setView('quote'));
+  on('ctaQuote', () => setView('quote'));
+  on('backBtn', () => setView('build'));
+  on('printBtn', () => window.print());
+  on('addTaskBtn', addLine);
+  on('resetBtn', askReset);
+  on('setup-toggle', toggleSetup);
+  on('setupBtn', openSetup);
+  on('bannerX', dismissBanner);
+  on('resetKeep', closeReset);
+  on('resetClear', doReset);
+}
+
 /* ---- Init ---- */
 function init(){
   const saved = load();
@@ -1143,7 +1173,7 @@ function init(){
   hydrateForm();
   bindInputs();
   bindLineDelegation();
-  document.getElementById('setupBtn').addEventListener('click', openSetup);
+  wireButtons();
   renderLines();
   refresh();
   if(!saved && !seen) showBanner();
