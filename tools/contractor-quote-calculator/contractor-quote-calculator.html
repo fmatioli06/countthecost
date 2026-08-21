@@ -492,7 +492,6 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
             <div class="seg" id="seg-detail">
               <button data-detail="math" type="button" class="is-active">Show the math</button>
               <button data-detail="flat" type="button">Flat price</button>
-              <button data-detail="total" type="button">One price</button>
             </div>
           </div>
           <div class="qopt" id="matOpt">
@@ -718,10 +717,9 @@ function renderOwner(r){
 /* ---- Render client quote ---- */
 function renderQuote(r){
   const s = state;
-  const single = s.detail === 'total';   // one price, work shown only as scope
-  const flat = s.detail === 'flat' || single;
+  const flat = s.detail === 'flat';       // line items, one total per line, no labor/material split
   const folded = s.matMode === 'folded';
-  const anyMaterials = !single && r.matShown > 0.005;
+  const anyMaterials = r.matShown > 0.005;
 
   // Header
   let html = '';
@@ -767,9 +765,9 @@ function renderQuote(r){
   const matRows   = !flat && !folded && anyMaterials;  // materials get their own rows below
 
   html += '<table class="qtable"><thead><tr>';
-  html += '<th>'+(single ? 'Scope of work' : 'Task')+'</th>';
+  html += '<th>Task</th>';
   if(splitCols) html += '<th class="num">Labor</th><th class="num">Materials</th>';
-  if(!single) html += '<th class="num">Amount</th>';
+  html += '<th class="num">Amount</th>';
   html += '</tr></thead><tbody>';
 
   s.lines.forEach((li, i)=>{
@@ -787,7 +785,7 @@ function renderQuote(r){
       html += '<td class="num">'+money(scLabor(pl))+'</td>';
       html += '<td class="num">'+(pl.charged>0 ? money(scMat(pl)) : '—')+'</td>';
     }
-    if(!single) html += '<td class="num">'+money(matRows ? scLine(pl) - scMat(pl) : scLine(pl))+'</td>';
+    html += '<td class="num">'+money(matRows ? scLine(pl) - scMat(pl) : scLine(pl))+'</td>';
     html += '</tr>';
   });
 
@@ -802,17 +800,16 @@ function renderQuote(r){
 
   html += '</tbody></table>';
 
-  // Totals. "One price" collapses everything into a single number; the other
-  // modes break out subtotal, trip and tax so the client can add up the rows.
+  // Totals
   html += '<div class="qtotals">';
-  const showBreak = !single && (r.trip>0 || r.tax>0 || (num(s.deposit)>0));
+  const showBreak = r.trip>0 || r.tax>0 || (num(s.deposit)>0);
   if(showBreak){
     // Subtotal equals the sum of the task rows above (margin already inside them).
     html += row('Subtotal', money(r.withMargin - r.trip));
     if(r.trip>0) html += row('Trip charge', money(r.trip));
     if(r.tax>0)  html += row('Tax', money(r.tax));
   }
-  html += '<div class="qt-row total"><span>'+(single ? 'Project total' : 'Total')+'</span><span class="amt">'+money(r.total)+'</span></div>';
+  html += '<div class="qt-row total"><span>Total</span><span class="amt">'+money(r.total)+'</span></div>';
   const depPct = Math.min(100, Math.max(0, num(s.deposit)));   // matches the cap calc() puts on the amount
   if(depPct>0) html += '<div class="qt-row deposit"><span>Deposit due ('+trimPct(depPct)+'%)</span><span class="amt">'+money(r.deposit)+'</span></div>';
   html += '</div>';
@@ -1112,6 +1109,7 @@ function hydrateForm(){
   });
   document.querySelectorAll('#seg-operator button').forEach(b=>b.classList.toggle('is-active', b.dataset.op===state.operator));
   document.querySelectorAll('#seg-tax button').forEach(b=>b.classList.toggle('is-active', b.dataset.tax===state.taxMode));
+  if(!['math','flat'].includes(state.detail)) state.detail = 'flat';   // retire the old 'total' option cleanly
   document.querySelectorAll('#seg-detail button').forEach(b=>b.classList.toggle('is-active', b.dataset.detail===state.detail));
   document.querySelectorAll('#seg-materials button').forEach(b=>b.classList.toggle('is-active', b.dataset.mat===state.matMode));
   applyDetailUI();
